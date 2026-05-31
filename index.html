@@ -267,8 +267,17 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
       <div style="padding: 0 16px;">
         <div class="card">
           <div class="card-title">Agregar deuda</div>
+          <div class="input-group"><label>Categoría</label>
+            <select id="d-cat">
+              <option value="Tarjetas">💳 Tarjetas de crédito</option>
+              <option value="Préstamos">🏦 Préstamos / cuotas</option>
+              <option value="Personas">🤝 Deudas con personas</option>
+              <option value="Billeteras">📱 Billeteras digitales</option>
+              <option value="Otro">📋 Otro</option>
+            </select>
+          </div>
           <div class="input-grid">
-            <div class="input-group"><label>Banco / tarjeta</label><input type="text" id="d-nombre" placeholder="Galicia Visa"></div>
+            <div class="input-group"><label>Nombre</label><input type="text" id="d-nombre" placeholder="Galicia Visa"></div>
             <div class="input-group"><label>Saldo total ($)</label><input type="number" id="d-saldo" placeholder="150000" inputmode="numeric"></div>
             <div class="input-group"><label>Pago mínimo ($)</label><input type="number" id="d-minimo" placeholder="12000" inputmode="numeric"></div>
             <div class="input-group"><label>Tasa mensual (%)</label><input type="number" id="d-tasa" placeholder="8.5" step="0.1" inputmode="decimal"></div>
@@ -525,8 +534,9 @@ function addDeuda() {
   const s = parseFloat(document.getElementById('d-saldo').value);
   const m = parseFloat(document.getElementById('d-minimo').value);
   const t = parseFloat(document.getElementById('d-tasa').value);
+  const cat = document.getElementById('d-cat').value;
   if (!n || isNaN(s) || isNaN(m) || s<=0 || m<=0) { toast('Completá nombre, saldo y mínimo'); return; }
-  ST.deudas.push({ id: Date.now(), nombre:n, saldo:s, minimo:m, tasa:isNaN(t)?0:t });
+  ST.deudas.push({ id: Date.now(), nombre:n, saldo:s, minimo:m, tasa:isNaN(t)?0:t, cat });
   save();
   ['d-nombre','d-saldo','d-minimo','d-tasa'].forEach(i => document.getElementById(i).value='');
   toast('Deuda agregada');
@@ -543,28 +553,56 @@ function mesesParaLiquidar(d) {
   if (d.minimo <= interes) return Infinity;
   return Math.ceil(Math.log(d.minimo / (d.minimo - interes)) / Math.log(1 + r));
 }
+const CAT_ICONS = {
+  'Tarjetas': '💳',
+  'Préstamos': '🏦',
+  'Personas': '🤝',
+  'Billeteras': '📱',
+  'Otro': '📋'
+};
+
+function addDeudaCategory(cat) {
+  document.getElementById('d-cat').value = cat;
+  toast('Categoría: ' + cat);
+}
+
 function renderDeudas() {
   const total = ST.deudas.reduce((a,d)=>a+d.saldo,0);
   const el = document.getElementById('deudas-list');
+
   if (!ST.deudas.length) {
     el.innerHTML = '<p style="font-size:13px;color:var(--text3);padding:8px 0;">Aún no cargaste deudas.</p>';
   } else {
-    el.innerHTML = ST.deudas.map(d => {
-      const meses = mesesParaLiquidar(d);
-      const valido = isFinite(meses) && meses < 600;
-      const fecha = valido ? (() => { const f=new Date(); f.setMonth(f.getMonth()+meses); return f.toLocaleDateString('es-AR',{month:'short',year:'numeric'}); })() : '?';
-      const badge = meses < 6 ? 'badge-ok' : meses < 18 ? 'badge-warn' : 'badge-danger';
-      return `<div class="row">
-        <div style="flex:1; min-width:0;">
-          <div class="row-label">${d.nombre}</div>
-          <div class="row-sub">Mín. ${fmt(d.minimo)}/mes · ${valido?meses+'m':'revisá datos'} · <span class="badge ${badge}">${fecha}</span></div>
-        </div>
-        <div class="row-right" style="display:flex;align-items:center;gap:8px;">
-          <div style="font-size:14px;font-weight:600;color:var(--danger);">${fmt(d.saldo)}</div>
-          <button class="btn-danger" onclick="removeDeuda(${d.id})">×</button>
-        </div>
-      </div>`;
-    }).join('');
+    const CATS = ['Tarjetas','Préstamos','Personas','Billeteras','Otro'];
+    let html = '';
+    CATS.forEach(cat => {
+      const deudas = ST.deudas.filter(d => (d.cat || 'Tarjetas') === cat);
+      if (!deudas.length) return;
+      const subtotal = deudas.reduce((a,d)=>a+d.saldo,0);
+      html += `<div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 4px;">
+          <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;">${CAT_ICONS[cat]||'📋'} ${cat}</span>
+          <span style="font-size:11px;color:var(--text3);">${fmt(subtotal)}</span>
+        </div>`;
+      deudas.forEach(d => {
+        const meses = mesesParaLiquidar(d);
+        const valido = isFinite(meses) && meses < 600;
+        const fecha = valido ? (() => { const f=new Date(); f.setMonth(f.getMonth()+meses); return f.toLocaleDateString('es-AR',{month:'short',year:'numeric'}); })() : '?';
+        const badge = meses < 6 ? 'badge-ok' : meses < 18 ? 'badge-warn' : 'badge-danger';
+        html += `<div class="row" style="padding-left:8px;">
+          <div style="flex:1;min-width:0;">
+            <div class="row-label">${d.nombre}</div>
+            <div class="row-sub">Mín. ${fmt(d.minimo)}/mes · ${valido?meses+'m':'revisá datos'} · <span class="badge ${badge}">${fecha}</span></div>
+          </div>
+          <div class="row-right" style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:14px;font-weight:600;color:var(--danger);">${fmt(d.saldo)}</div>
+            <button class="btn-danger" onclick="removeDeuda(${d.id})">×</button>
+          </div>
+        </div>`;
+      });
+      html += `</div><div style="height:0.5px;background:var(--border);margin:4px 0 10px;"></div>`;
+    });
+    el.innerHTML = html;
   }
   document.getElementById('total-deuda').textContent = fmt(total);
 }
