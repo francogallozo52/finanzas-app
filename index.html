@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Finanzas">
+<meta name="apple-mobile-web-app-title" content="FICO">
 <meta name="theme-color" content="#1a1a1a" id="theme-meta">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Mis Finanzas</title>
+<title>FICO</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -228,7 +228,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 
 <div class="app-shell">
   <div class="topbar">
-    <div class="topbar-title" id="topbar-title">Mis Finanzas</div>
+    <div class="topbar-title" id="topbar-title">FICO</div>
     <div class="topbar-right">
       <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="Cambiar tema">☀</button>
       <button class="icon-btn" onclick="showExport()" title="Exportar">↑</button>
@@ -414,19 +414,19 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="showSection('resumen')" id="btn-resumen">
-      <span class="nav-icon">⌂</span><span>Resumen</span>
+      <span class="nav-icon">📊</span><span>Resumen</span>
     </button>
     <button class="nav-item" onclick="showSection('deudas')" id="btn-deudas">
-      <span class="nav-icon">⊠</span><span>Deudas</span>
+      <span class="nav-icon">💸</span><span>Deudas</span>
     </button>
     <button class="nav-item" onclick="showSection('gastos')" id="btn-gastos">
-      <span class="nav-icon">✎</span><span>Gastos</span>
+      <span class="nav-icon">✏️</span><span>Gastos</span>
     </button>
     <button class="nav-item" onclick="showSection('planes')" id="btn-planes">
-      <span class="nav-icon">◎</span><span>Planes</span>
+      <span class="nav-icon">🎯</span><span>Planes</span>
     </button>
     <button class="nav-item" onclick="showSection('consejos')" id="btn-consejos">
-      <span class="nav-icon">★</span><span>Consejos</span>
+      <span class="nav-icon">💡</span><span>Consejos</span>
     </button>
   </nav>
 </div>
@@ -502,7 +502,7 @@ function showSection(id) {
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('visible');
   document.getElementById('btn-'+id).classList.add('active');
-  const titles = { resumen:'Mis Finanzas', deudas:'Deudas', gastos:'Registrar Gastos', proyeccion:'Proyección', planes:'Mis Planes', consejos:'Consejos' };
+  const titles = { resumen:'FICO', deudas:'Deudas', gastos:'Registrar Gastos', proyeccion:'Proyección', planes:'Mis Planes', consejos:'Consejos' };
   document.getElementById('topbar-title').textContent = titles[id] || 'Mis Finanzas';
   if (id==='resumen') renderResumen();
   if (id==='deudas') renderDeudas();
