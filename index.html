@@ -82,7 +82,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   padding: 8px 4px; border: none; background: transparent; cursor: pointer;
   color: var(--text3); font-size: 10px; gap: 3px; transition: color 0.15s;
 }
-.nav-item .nav-icon { font-size: 22px; line-height: 1; }
+.nav-item .nav-icon { font-size: 22px; line-height: 1; display:flex; align-items:center; justify-content:center; height:24px; }
 .nav-item.active { color: var(--accent); }
 .nav-item:active { opacity: 0.6; }
 
@@ -414,19 +414,19 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="showSection('resumen')" id="btn-resumen">
-      <span class="nav-icon">📊</span><span>Resumen</span>
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/><path d="M3 12v9h18V12"/></svg></span><span>Resumen</span>
     </button>
     <button class="nav-item" onclick="showSection('deudas')" id="btn-deudas">
-      <span class="nav-icon">💸</span><span>Deudas</span>
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span><span>Deudas</span>
     </button>
     <button class="nav-item" onclick="showSection('gastos')" id="btn-gastos">
-      <span class="nav-icon">✏️</span><span>Gastos</span>
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span><span>Gastos</span>
     </button>
     <button class="nav-item" onclick="showSection('planes')" id="btn-planes">
-      <span class="nav-icon">🎯</span><span>Planes</span>
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span><span>Planes</span>
     </button>
     <button class="nav-item" onclick="showSection('consejos')" id="btn-consejos">
-      <span class="nav-icon">💡</span><span>Consejos</span>
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span><span>Consejos</span>
     </button>
   </nav>
 </div>
