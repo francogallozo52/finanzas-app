@@ -317,7 +317,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 24px;max-height:70vh;">
       <div class="input-grid">
         <div class="input-group" style="margin-bottom:8px;"><label>Descripción</label><input type="text" id="m-desc" placeholder="Afiches, nafta..."></div>
-        <div class="input-group" style="margin-bottom:8px;"><label>Monto ($)</label><input type="number" id="m-monto" placeholder="3500" inputmode="decimal" step="0.01"></div>
+        <div class="input-group" style="margin-bottom:8px;"><label>Monto ($)</label><input type="text" id="m-monto" placeholder="3500" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*"></div>
       </div>
       <!-- CAMPOS GASTO -->
       <div id="campos-gasto">
@@ -345,10 +345,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <input type="date" id="m-fecha">
           </div>
         </div>
+        <div class="input-group" style="margin-bottom:8px;">
+          <label>Estado</label>
+          <div style="display:flex;gap:0;">
+            <button id="est-pendiente" onclick="setEstado('pendiente')" style="flex:1;padding:9px;border:0.5px solid var(--border);border-radius:10px 0 0 10px;font-size:13px;font-weight:600;cursor:pointer;background:var(--warn);color:#fff;border-color:var(--warn);">⏳ Pendiente</button>
+            <button id="est-pagado" onclick="setEstado('pagado')" style="flex:1;padding:9px;border:0.5px solid var(--border);border-radius:0 10px 10px 0;font-size:13px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--text2);">✓ Pagado</button>
+          </div>
+        </div>
         <div id="cuotas-wrap" style="display:none;">
           <div class="input-grid">
-            <div class="input-group" style="margin-bottom:4px;"><label>Valor cuota ($)</label><input type="number" id="m-cuota-val" placeholder="4000" inputmode="decimal" step="0.01" oninput="calcTotal()"></div>
-            <div class="input-group" style="margin-bottom:4px;"><label>Cant. cuotas</label><input type="number" id="m-cuota-cant" placeholder="3" inputmode="numeric" oninput="calcTotal()"></div>
+            <div class="input-group" style="margin-bottom:4px;"><label>Valor cuota ($)</label><input type="text" id="m-cuota-val" placeholder="4000" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" oninput="calcTotal()"></div>
+            <div class="input-group" style="margin-bottom:4px;"><label>Cant. cuotas</label><input type="text" id="m-cuota-cant" placeholder="3" inputmode="numeric" pattern="[0-9]*" oninput="calcTotal()"></div>
           </div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:8px;" id="cuota-total-label"></div>
         </div>
@@ -604,11 +611,13 @@ function renderResumen() {
 
   const totalIngresos = movsMes.filter(m => m.esIngreso).reduce((a,m) => a+m.monto, 0);
   const totalGastosSolo = movsMes.filter(m => !m.esIngreso).reduce((a,m) => a+m.monto, 0);
+  const totalPendiente = movsMes.filter(m => !m.esIngreso && m.estado !== 'pagado').reduce((a,m) => a+m.monto, 0);
+  const totalPagado = movsMes.filter(m => !m.esIngreso && m.estado === 'pagado').reduce((a,m) => a+m.monto, 0);
   const libreReal = totalIngresos - totalGastosSolo;
   document.getElementById('metric-row').innerHTML = `
     <div class="metric"><div class="metric-label">Ingresos</div><div class="metric-val green">${fmt(totalIngresos)}</div></div>
-    <div class="metric"><div class="metric-label">Gastos</div><div class="metric-val red">${fmt(totalGastosSolo)}</div></div>
-    <div class="metric"><div class="metric-label">Libre</div><div class="metric-val ${libreReal >= 0 ? 'green' : 'red'}">${fmt(libreReal)}</div></div>`;
+    <div class="metric"><div class="metric-label">Pagado</div><div class="metric-val red">${fmt(totalPagado)}</div></div>
+    <div class="metric"><div class="metric-label">Pendiente</div><div class="metric-val warn">${fmt(totalPendiente)}</div></div>`;
 
   renderCharts();
 
@@ -835,6 +844,7 @@ function renderMovimientos() {
 
 // ─── FAB / AGREGAR MOVIMIENTO ─────────────────────────────────────────────────
 let currentMovTipo = 'gasto';
+let selectedEstado = 'pendiente';
 let selectedIngresoCat = 'sueldo';
 
 function setMovTipo(tipo) {
@@ -875,6 +885,8 @@ function openFab() {
   document.getElementById('modal-mov-title').textContent = 'Nuevo movimiento';
   document.getElementById('modal-mov-btn').textContent = 'Guardar';
   setMovTipo('gasto');
+  selectedEstado = 'pendiente';
+  setEstado('pendiente');
   populateGrupoSelects();
   renderSubgruposChips();
   openModal('modal-mov');
@@ -893,13 +905,24 @@ function renderSubgruposChips() {
 
 function selectSub(id) { selectedSubgrupo = id; renderSubgruposChips(); }
 
+function setEstado(estado) {
+  selectedEstado = estado;
+  const isPend = estado === 'pendiente';
+  document.getElementById('est-pendiente').style.background = isPend ? 'var(--warn)' : 'var(--bg3)';
+  document.getElementById('est-pendiente').style.color = isPend ? '#fff' : 'var(--text2)';
+  document.getElementById('est-pendiente').style.borderColor = isPend ? 'var(--warn)' : 'var(--border)';
+  document.getElementById('est-pagado').style.background = !isPend ? 'var(--accent)' : 'var(--bg3)';
+  document.getElementById('est-pagado').style.color = !isPend ? '#fff' : 'var(--text2)';
+  document.getElementById('est-pagado').style.borderColor = !isPend ? 'var(--accent)' : 'var(--border)';
+}
+
 function toggleCuotas() {
   const tipo = document.getElementById('m-tipo').value;
   document.getElementById('cuotas-wrap').style.display = tipo === 'cuotas' ? 'block' : 'none';
 }
 
 function calcTotal() {
-  const val = parseFloat(document.getElementById('m-cuota-val').value) || 0;
+  const val = parseFloat(document.getElementById('m-cuota-val').value.replace(',','.')) || 0;
   const cant = parseInt(document.getElementById('m-cuota-cant').value) || 0;
   if (val && cant) document.getElementById('cuota-total-label').textContent = `Total: ${fmt(val * cant)} en ${cant} cuotas`;
   else document.getElementById('cuota-total-label').textContent = '';
@@ -907,7 +930,7 @@ function calcTotal() {
 
 function guardarMovimiento() {
   const desc = document.getElementById('m-desc').value.trim();
-  const monto = parseFloat(document.getElementById('m-monto').value);
+  const monto = parseFloat(document.getElementById('m-monto').value.replace(',','.'));
   if (!desc) { toast('Poné una descripción'); return; }
   if (!monto || monto <= 0) { toast('Ingresá un monto válido'); return; }
 
@@ -931,7 +954,7 @@ function guardarMovimiento() {
 
   let montoFinal = monto, cuotaTotal, cuotaVal;
   if (tipo === 'cuotas') {
-    cuotaVal = parseFloat(document.getElementById('m-cuota-val').value);
+    cuotaVal = parseFloat(document.getElementById('m-cuota-val').value.replace(',','.'));
     cuotaTotal = parseInt(document.getElementById('m-cuota-cant').value);
     if (!cuotaVal || !cuotaTotal) { toast('Completá valor y cantidad de cuotas'); return; }
     montoFinal = cuotaVal;
@@ -943,12 +966,12 @@ function guardarMovimiento() {
   if (editingMovId) {
     const idx = ST.movimientos.findIndex(m => m.id === editingMovId);
     if (idx >= 0) {
-      ST.movimientos[idx] = { ...ST.movimientos[idx], desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes };
+      ST.movimientos[idx] = { ...ST.movimientos[idx], desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes, estado: selectedEstado };
     }
     toast('Movimiento actualizado ✓');
     closeModal('modal-edit');
   } else {
-    const mov = { id: Date.now(), desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes, esIngreso: false };
+    const mov = { id: Date.now(), desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes, esIngreso: false, estado: selectedEstado };
     ST.movimientos.push(mov);
     if (tipo === 'cuotas' && cuotaTotal > 1) {
       mov.cuotaActual = 1; mov.cuotaTotal = cuotaTotal;
@@ -1181,6 +1204,16 @@ function confirmDeleteLista() {
   if (!confirm(`¿Eliminar "${l.nombre}"?`)) return;
   ST.listas = ST.listas.filter(x => x.id !== listaDetalleId);
   saveST(); closeListaDetalle(); toast('Lista eliminada');
+}
+
+function toggleEstado(id) {
+  const m = ST.movimientos.find(x => x.id === id);
+  if (!m) return;
+  m.estado = m.estado === 'pagado' ? 'pendiente' : 'pagado';
+  saveST();
+  toast(m.estado === 'pagado' ? '✓ Marcado como pagado' : 'Marcado como pendiente');
+  const sec = document.querySelector('.section.visible')?.id?.replace('sec-','');
+  if (sec) showSection(sec);
 }
 
 // ─── SERVICE WORKER ───────────────────────────────────────────────────────────
