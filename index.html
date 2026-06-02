@@ -226,6 +226,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       <div id="movimientos-list" style="padding:0 16px;"></div>
     </div>
 
+    <!-- LISTAS -->
+    <div class="section" id="sec-listas">
+      <div id="listas-list-view">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px;">
+          <div style="font-size:22px;font-weight:700;">Listas</div>
+          <button class="btn-ghost" onclick="openNuevaLista()">+ Nueva</button>
+        </div>
+        <div id="listas-cards" style="padding:0 16px;"></div>
+      </div>
+      <div id="lista-detalle-view" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px 0;">
+          <button class="back-btn" style="padding:10px 0;" onclick="closeListaDetalle()">‹ Listas</button>
+          <button onclick="confirmDeleteLista()" style="background:transparent;border:none;color:var(--danger);font-size:13px;cursor:pointer;padding:10px 0;">Eliminar</button>
+        </div>
+        <div id="lista-detalle-content"></div>
+      </div>
+    </div>
+
     <!-- AJUSTES -->
     <div class="section" id="sec-ajustes">
       <div style="font-size:22px;font-weight:700;padding:16px 16px 8px;">Ajustes</div>
@@ -271,6 +289,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <button class="nav-item" onclick="showSection('movimientos')" id="btn-movimientos">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       <span>Movimientos</span>
+    </button>
+    <button class="nav-item" onclick="showSection('listas')" id="btn-listas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+      <span>Listas</span>
     </button>
     <button class="nav-item" onclick="showSection('ajustes')" id="btn-ajustes">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -365,7 +387,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
 <script>
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
-const PALETTE = ['#E24B4A','#EF9F27','#1D9E75','#378ADD','#7F77DD','#D4537E','#5DCAA5','#BA7517','#4AADE2','#A855F7'];
+const PALETTE = ['#E24B4A','#EF9F27','#1D9E75','#378ADD','#D4537E','#F97316','#06B6D4','#84CC16','#EC4899','#FFFFFF'];
 
 const SUBGRUPOS = [
   {id:'comida', label:'🍔 Comida y bebida'},
@@ -392,6 +414,7 @@ function saveST() { try { localStorage.setItem(STORE, JSON.stringify(ST)); } cat
 
 let ST = loadST();
 if (!ST.grupos) ST.grupos = [];
+if (!ST.listas) ST.listas = [];
 if (!ST.movimientos) ST.movimientos = [];
 if (!ST.nombre) ST.nombre = 'Fran';
 if (!ST.sueldo) ST.sueldo = 0;
@@ -432,7 +455,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 function closeModalOnBg(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
-const SEC_TITLES = { resumen:'FICO', grupos:'Mis grupos', movimientos:'Movimientos', ajustes:'Ajustes' };
+const SEC_TITLES = { resumen:'FICO', grupos:'Mis grupos', movimientos:'Movimientos', listas:'Listas de compras', ajustes:'Ajustes' };
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -445,6 +468,7 @@ function showSection(id) {
   if (id === 'resumen') renderResumen();
   if (id === 'grupos') renderGrupos();
   if (id === 'movimientos') renderMovimientos();
+  if (id === 'listas') renderListas();
   if (id === 'ajustes') renderAjustes();
 }
 
@@ -908,6 +932,155 @@ function exportar() {
 
   if (navigator.share) navigator.share({ title:'FICO', text:txt }).catch(() => {});
   else navigator.clipboard.writeText(txt).then(() => toast('Copiado al portapapeles')).catch(() => toast('No se pudo copiar'));
+}
+
+
+// ─── LISTAS DE COMPRAS ────────────────────────────────────────────────────────
+let listaDetalleId = null;
+
+function renderListas() {
+  document.getElementById('listas-list-view').style.display = 'block';
+  document.getElementById('lista-detalle-view').style.display = 'none';
+  const el = document.getElementById('listas-cards');
+  if (!ST.listas.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🛒</div>Aún no creaste listas.<br>Tocá "+ Nueva" para empezar.</div>';
+    return;
+  }
+  el.innerHTML = ST.listas.map(l => {
+    const total = l.items.length;
+    const hechos = l.items.filter(i => i.done).length;
+    const pct = total > 0 ? Math.round((hechos / total) * 100) : 0;
+    return `<div onclick="openListaDetalle('${l.id}')" style="background:var(--bg2);border:0.5px solid var(--border);border-left:3px solid ${l.color||'var(--accent)'};border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px;">
+      <div style="font-size:24px;">${l.emoji||'🛒'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:15px;font-weight:600;color:var(--text);">${l.nombre}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">${hechos}/${total} items${total > 0 ? ' · ' + pct + '%' : ''}</div>
+        ${total > 0 ? `<div style="height:3px;background:var(--bg3);border-radius:2px;margin-top:6px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${l.color||'var(--accent)'};border-radius:2px;"></div></div>` : ''}
+      </div>
+      <span style="color:var(--text3);font-size:18px;">›</span>
+    </div>`;
+  }).join('');
+}
+
+function openNuevaLista() {
+  const nombre = prompt('Nombre de la lista:');
+  if (!nombre?.trim()) return;
+  const emojis = ['🛒','🏠','💻','👕','🍕','💊','🎁','✈','📚','🎮'];
+  const colors = ['#1D9E75','#378ADD','#D4537E','#EF9F27','#E24B4A','#06B6D4','#84CC16','#F97316'];
+  ST.listas.push({
+    id: 'lista_' + Date.now(),
+    nombre: nombre.trim(),
+    emoji: emojis[ST.listas.length % emojis.length],
+    color: colors[ST.listas.length % colors.length],
+    items: []
+  });
+  saveST(); renderListas();
+}
+
+function openListaDetalle(id) {
+  listaDetalleId = id;
+  const l = ST.listas.find(x => x.id === id);
+  if (!l) return;
+  document.getElementById('listas-list-view').style.display = 'none';
+  document.getElementById('lista-detalle-view').style.display = 'block';
+  document.getElementById('topbar-title').textContent = l.nombre;
+  renderListaDetalle();
+}
+
+function renderListaDetalle() {
+  const l = ST.listas.find(x => x.id === listaDetalleId);
+  if (!l) return;
+  const pendientes = l.items.filter(i => !i.done);
+  const hechos = l.items.filter(i => i.done);
+
+  let html = `<div style="padding:0 16px;">
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <input type="text" id="lista-item-input" placeholder="Agregar item..." style="flex:1;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:15px;padding:10px 12px;outline:none;" onkeydown="if(event.key==='Enter')addListaItem()">
+      <button onclick="addListaItem()" style="background:${l.color||'var(--accent)'};border:none;border-radius:var(--radius-sm);color:#fff;font-size:22px;padding:0 16px;cursor:pointer;line-height:1;">+</button>
+    </div>`;
+
+  if (!l.items.length) {
+    html += '<div class="empty-state"><div class="empty-icon">${l.emoji||"🛒"}</div>Lista vacía. Agregá el primer item.</div>';
+  } else {
+    if (pendientes.length) {
+      html += `<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Por comprar (${pendientes.length})</div>`;
+      html += '<div style="background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);margin-bottom:12px;overflow:hidden;">';
+      pendientes.forEach(item => {
+        html += `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid var(--border);">
+          <div onclick="toggleListaItem('${item.id}')" style="width:22px;height:22px;border-radius:50%;border:1.5px solid var(--text3);cursor:pointer;flex-shrink:0;"></div>
+          <span style="flex:1;font-size:14px;color:var(--text);">${item.texto}</span>
+          <button onclick="deleteListaItem('${item.id}')" style="background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:2px 6px;">×</button>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    if (hechos.length) {
+      html += `<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Comprado (${hechos.length})</div>`;
+      html += '<div style="background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);margin-bottom:12px;overflow:hidden;">';
+      hechos.forEach(item => {
+        html += `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid var(--border);">
+          <div onclick="toggleListaItem('${item.id}')" style="width:22px;height:22px;border-radius:50%;background:${l.color||'var(--accent)'};border:1.5px solid ${l.color||'var(--accent)'};cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+            <span style="color:#fff;font-size:12px;font-weight:700;">✓</span>
+          </div>
+          <span style="flex:1;font-size:14px;color:var(--text3);text-decoration:line-through;">${item.texto}</span>
+          <button onclick="deleteListaItem('${item.id}')" style="background:transparent;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:2px 6px;">×</button>
+        </div>`;
+      });
+      html += '</div>';
+      html += `<button onclick="limpiarComprados()" style="width:100%;padding:10px;background:transparent;border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:13px;cursor:pointer;margin-bottom:12px;">Limpiar comprados</button>`;
+    }
+  }
+  html += '</div>';
+  document.getElementById('lista-detalle-content').innerHTML = html;
+  const inp = document.getElementById('lista-item-input');
+  if (inp) inp.focus();
+}
+
+function addListaItem() {
+  const inp = document.getElementById('lista-item-input');
+  const txt = inp?.value?.trim();
+  if (!txt) return;
+  const l = ST.listas.find(x => x.id === listaDetalleId);
+  if (!l) return;
+  l.items.push({ id: 'item_' + Date.now(), texto: txt, done: false });
+  saveST(); inp.value = ''; renderListaDetalle();
+}
+
+function toggleListaItem(itemId) {
+  const l = ST.listas.find(x => x.id === listaDetalleId);
+  if (!l) return;
+  const item = l.items.find(i => i.id === itemId);
+  if (!item) return;
+  item.done = !item.done;
+  saveST(); renderListaDetalle();
+}
+
+function deleteListaItem(itemId) {
+  const l = ST.listas.find(x => x.id === listaDetalleId);
+  if (!l) return;
+  l.items = l.items.filter(i => i.id !== itemId);
+  saveST(); renderListaDetalle();
+}
+
+function limpiarComprados() {
+  const l = ST.listas.find(x => x.id === listaDetalleId);
+  if (!l) return;
+  l.items = l.items.filter(i => !i.done);
+  saveST(); renderListaDetalle(); toast('Lista limpiada ✓');
+}
+
+function closeListaDetalle() {
+  listaDetalleId = null;
+  document.getElementById('topbar-title').textContent = 'Listas de compras';
+  renderListas();
+}
+
+function confirmDeleteLista() {
+  const l = ST.listas.find(x => x.id === listaDetalleId);
+  if (!l) return;
+  if (!confirm(`¿Eliminar "${l.nombre}"?`)) return;
+  ST.listas = ST.listas.filter(x => x.id !== listaDetalleId);
+  saveST(); closeListaDetalle(); toast('Lista eliminada');
 }
 
 // ─── SERVICE WORKER ───────────────────────────────────────────────────────────
