@@ -65,7 +65,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .modal-handle{width:36px;height:4px;background:var(--bg4);border-radius:2px;margin:12px auto 16px;}
 .modal-title{font-size:17px;font-weight:700;color:var(--text);padding:0 16px 16px;}
 .modal-body{padding:0 16px;}
-.modal-close{position:absolute;top:16px;right:16px;background:var(--bg3);border:none;border-radius:50%;width:30px;height:30px;font-size:16px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.modal-close{position:absolute;top:14px;right:16px;background:var(--bg3);border:none;border-radius:50%;width:34px;height:34px;font-size:18px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
 
 /* SWIPE CHARTS */
 .charts-container{overflow-x:auto;scroll-snap-type:x mandatory;display:flex;scrollbar-width:none;-ms-overflow-style:none;}
@@ -282,9 +282,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 <!-- MODAL AGREGAR MOVIMIENTO -->
 <div class="modal-overlay" id="modal-mov" onclick="closeModalOnBg(event,'modal-mov')">
   <div class="modal" style="position:relative;">
-    <div class="modal-handle"></div>
+    <div style="height:48px;display:flex;align-items:center;justify-content:center;position:relative;"><div class="modal-handle" style="margin:0;"></div><button class="modal-close" onclick="closeModal('modal-mov')" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">×</button></div>
     <div class="modal-title" id="modal-mov-title">Nuevo movimiento</div>
-    <button class="modal-close" onclick="closeModal('modal-mov')">×</button>
     <div class="modal-body">
       <div class="input-group">
         <label>Descripción</label>
@@ -338,9 +337,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 <!-- MODAL NUEVO GRUPO -->
 <div class="modal-overlay" id="modal-grupo" onclick="closeModalOnBg(event,'modal-grupo')">
   <div class="modal" style="position:relative;">
-    <div class="modal-handle"></div>
+    <div style="height:48px;display:flex;align-items:center;justify-content:center;position:relative;"><div class="modal-handle" style="margin:0;"></div><button class="modal-close" onclick="closeModal('modal-grupo')" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">×</button></div>
     <div class="modal-title">Nuevo grupo</div>
-    <button class="modal-close" onclick="closeModal('modal-grupo')">×</button>
     <div class="modal-body">
       <div class="input-group"><label>Nombre del grupo</label><input type="text" id="g-nombre" placeholder="Visa, MP Mamá, Amex..."></div>
       <div class="input-group">
