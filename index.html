@@ -338,6 +338,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <select id="m-tipo" onchange="toggleCuotas()">
               <option value="unico">Pago único</option>
               <option value="cuotas">En cuotas</option>
+              <option value="mensual">Mensual (se repite)</option>
               <option value="efectivo">Efectivo</option>
             </select>
           </div>
@@ -672,60 +673,83 @@ function renderGrupos() {
   }).join('');
 }
 
+let grupoDetalleId = null;
+let grupoDetalleMes = { y: new Date().getFullYear(), m: new Date().getMonth() };
+
 function openGrupoDetalle(id) {
+  grupoDetalleId = id;
+  grupoDetalleMes = { y: new Date().getFullYear(), m: new Date().getMonth() };
   const g = ST.grupos.find(x => x.id === id);
   if (!g) return;
   document.getElementById('grupos-list-view').style.display = 'none';
   document.getElementById('grupo-detalle-view').style.display = 'block';
   document.getElementById('topbar-title').textContent = g.nombre;
-  const movs = ST.movimientos.filter(m => m.grupoId === id || m.grupoId2 === id).reverse();
-  const total = movs.reduce((a, m) => a + m.monto, 0);
+  renderGrupoDetalleMes();
+}
 
-  // Group by month
-  const byMes = {};
-  movs.forEach(m => { if (!byMes[m.mes]) byMes[m.mes] = []; byMes[m.mes].push(m); });
+function renderGrupoDetalleMes() {
+  const g = ST.grupos.find(x => x.id === grupoDetalleId);
+  if (!g) return;
+  const { y, m } = grupoDetalleMes;
+  const key = monthKey(y, m);
+  const label = new Date(y, m, 1).toLocaleDateString('es-AR', {month:'long', year:'numeric'});
+  const allMovs = ST.movimientos.filter(x => x.grupoId === grupoDetalleId || x.grupoId2 === grupoDetalleId);
+  const totalAll = allMovs.reduce((a, x) => a + x.monto, 0);
+  const movsMes = allMovs.filter(x => x.mes === key);
+  const totalMes = movsMes.reduce((a, x) => a + x.monto, 0);
+  const pendienteMes = movsMes.filter(x => x.estado !== 'pagado').reduce((a,x) => a+x.monto, 0);
 
   let html = `<div style="padding:0 16px 16px;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-      <div style="width:52px;height:52px;border-radius:14px;background:${g.color}22;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:${g.color};">${g.nombre.charAt(0)}</div>
-      <div>
-        <div style="font-size:20px;font-weight:700;color:var(--text);">${g.nombre}</div>
-        <div style="font-size:13px;color:var(--text3);">Total: <span style="color:var(--danger);font-weight:600;">${fmt(total)}</span></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:46px;height:46px;border-radius:12px;background:${g.color}22;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:${g.color};">${g.nombre.charAt(0)}</div>
+      <div style="flex:1;">
+        <div style="font-size:18px;font-weight:700;color:var(--text);">${g.nombre}</div>
+        <div style="font-size:12px;color:var(--text3);">Total histórico: <span style="color:var(--danger);font-weight:600;">${fmt(totalAll)}</span></div>
       </div>
+    </div>
+    <!-- Swipe mes -->
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:12px;padding:10px 14px;margin-bottom:14px;">
+      <button onclick="changeGrupoMes(-1)" style="background:transparent;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:0 8px;">‹</button>
+      <div style="text-align:center;">
+        <div style="font-size:14px;font-weight:600;color:var(--text);text-transform:capitalize;">${label}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">${fmt(totalMes)} total · ${fmt(pendienteMes)} pendiente</div>
+      </div>
+      <button onclick="changeGrupoMes(1)" style="background:transparent;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:0 8px;">›</button>
     </div>`;
 
-  if (!movs.length) {
-    html += '<div class="empty-state"><div class="empty-icon">📭</div>Sin movimientos aún.</div>';
+  if (!movsMes.length) {
+    html += '<div class="empty-state" style="padding:30px 0;"><div class="empty-icon">📭</div>Sin movimientos este mes.</div>';
   } else {
-    Object.keys(byMes).sort().reverse().forEach(mesKey => {
-      const [y, m] = mesKey.split('-');
-      const label = new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('es-AR', {month:'long', year:'numeric'});
-      const totalMes = byMes[mesKey].reduce((a, x) => a + x.monto, 0);
-      html += `<div style="margin-bottom:4px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 4px;">
-          <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;">${label}</span>
-          <span style="font-size:12px;color:var(--text3);">${fmt(totalMes)}</span>
-        </div>`;
-      byMes[mesKey].forEach(mov => {
-        const sub = SUBGRUPO_MAP[mov.subgrupo] || '📋 Otros';
-        const cuotaLabel = mov.tipo === 'cuotas' ? `· Cuota ${mov.cuotaActual||1}/${mov.cuotaTotal}` : '';
-        html += `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);">
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${mov.desc}</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:2px;">${sub.replace(/^.+ /,'')} ${cuotaLabel}</div>
-          </div>
-          <div style="font-size:13px;font-weight:600;flex-shrink:0;">${fmt(mov.monto)}</div>
-          <button onclick="editMovimiento(${mov.id})" style="background:transparent;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px 6px;">✎</button>
-          <button onclick="deleteMovimiento(${mov.id},${g.id})" class="btn-danger-sm">×</button>
-        </div>`;
-      });
-      html += '</div>';
+    movsMes.forEach(mov => {
+      const sub = SUBGRUPO_MAP[mov.subgrupo] || '📋 Otros';
+      const cuotaLabel = mov.tipo === 'cuotas' ? ` · ${mov.cuotaActual||1}/${mov.cuotaTotal}` : mov.tipo === 'mensual' ? ' · ↻' : '';
+      const estadoColor = mov.estado === 'pagado' ? 'var(--accent)' : 'var(--warn)';
+      const estadoLabel = mov.estado === 'pagado' ? '✓ Pagado' : '⏳ Pendiente';
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${mov.desc}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">${sub.replace(/^.+ /,'')}${cuotaLabel}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:13px;font-weight:600;">${fmt(mov.monto)}</div>
+          <div onclick="toggleEstado(${mov.id})" style="font-size:10px;font-weight:600;cursor:pointer;color:${estadoColor};">${estadoLabel}</div>
+        </div>
+        <button onclick="editMovimiento(${mov.id})" style="background:transparent;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px 4px;">✎</button>
+        <button onclick="deleteMovimiento(${mov.id},${g.id})" class="btn-danger-sm">×</button>
+      </div>`;
     });
   }
 
   html += `<button onclick="confirmDeleteGrupo(${g.id})" style="width:100%;margin-top:20px;padding:12px;background:rgba(226,75,74,0.1);border:0.5px solid rgba(226,75,74,0.3);border-radius:var(--radius-sm);color:var(--danger);font-size:14px;cursor:pointer;">Eliminar grupo</button>`;
   html += '</div>';
   document.getElementById('grupo-detalle-content').innerHTML = html;
+}
+
+function changeGrupoMes(delta) {
+  grupoDetalleMes.m += delta;
+  if (grupoDetalleMes.m > 11) { grupoDetalleMes.m = 0; grupoDetalleMes.y++; }
+  if (grupoDetalleMes.m < 0) { grupoDetalleMes.m = 11; grupoDetalleMes.y--; }
+  renderGrupoDetalleMes();
 }
 
 function closeGrupoDetalle() {
@@ -971,8 +995,21 @@ function guardarMovimiento() {
     toast('Movimiento actualizado ✓');
     closeModal('modal-edit');
   } else {
-    const mov = { id: Date.now(), desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes, esIngreso: false, estado: selectedEstado };
+    const movId = Date.now();
+    const mov = { id: movId, desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes, esIngreso: false, estado: selectedEstado };
     ST.movimientos.push(mov);
+    // Generate 24 months ahead for mensual
+    if (tipo === 'mensual') {
+      for (let i = 1; i <= 24; i++) {
+        const fd = new Date(fechaDate.getFullYear(), fechaDate.getMonth() + i, fechaDate.getDate());
+        ST.movimientos.push({
+          id: movId + i, desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo,
+          tipo: 'mensual', fecha: fd.toISOString().split('T')[0],
+          mes: monthKey(fd.getFullYear(), fd.getMonth()),
+          esIngreso: false, estado: 'pendiente', mensualOrigen: movId, esAutogenerada: true
+        });
+      }
+    }
     if (tipo === 'cuotas' && cuotaTotal > 1) {
       mov.cuotaActual = 1; mov.cuotaTotal = cuotaTotal;
       for (let i = 1; i < cuotaTotal; i++) {
@@ -1016,8 +1053,17 @@ function editMovimiento(id) {
 }
 
 function deleteMovimiento(id, grupoId) {
-  ST.movimientos = ST.movimientos.filter(m => m.id !== id);
-  saveST(); toast('Movimiento eliminado');
+  const m = ST.movimientos.find(x => x.id === id);
+  if (m?.tipo === 'mensual' && !m.esAutogenerada) {
+    // Delete all future copies too
+    const origen = m.id;
+    ST.movimientos = ST.movimientos.filter(x => x.id !== id && x.mensualOrigen !== origen);
+    toast('Suscripción eliminada (todos los meses)');
+  } else {
+    ST.movimientos = ST.movimientos.filter(x => x.id !== id);
+    toast('Movimiento eliminado');
+  }
+  saveST();
   const sec = document.querySelector('.section.visible')?.id?.replace('sec-','');
   if (sec === 'grupos' && grupoId) openGrupoDetalle(grupoId);
   else if (sec) showSection(sec);
@@ -1212,6 +1258,7 @@ function toggleEstado(id) {
   m.estado = m.estado === 'pagado' ? 'pendiente' : 'pagado';
   saveST();
   toast(m.estado === 'pagado' ? '✓ Marcado como pagado' : 'Marcado como pendiente');
+  if (grupoDetalleId) { renderGrupoDetalleMes(); return; }
   const sec = document.querySelector('.section.visible')?.id?.replace('sec-','');
   if (sec) showSection(sec);
 }
