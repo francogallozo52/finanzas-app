@@ -317,7 +317,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 24px;max-height:70vh;">
       <div class="input-grid">
         <div class="input-group" style="margin-bottom:8px;"><label>Descripción</label><input type="text" id="m-desc" placeholder="Afiches, nafta..."></div>
-        <div class="input-group" style="margin-bottom:8px;"><label>Monto ($)</label><input type="text" id="m-monto" placeholder="3500" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*"></div>
+        <div class="input-group" style="margin-bottom:8px;"><label>Monto</label>
+          <div style="display:flex;gap:4px;">
+            <select id="m-moneda" onchange="updateMonedaLabel()" style="width:70px;flex-shrink:0;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;padding:10px 6px;">
+              <option value="ARS">ARS</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+            </select>
+            <input type="text" id="m-monto" placeholder="0" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" style="flex:1;min-width:0;">
+          </div>
+          <div id="m-equiv" style="font-size:11px;color:var(--accent);margin-top:4px;"></div>
+        </div>
       </div>
       <!-- CAMPOS GASTO -->
       <div id="campos-gasto">
@@ -450,6 +460,7 @@ function saveST() { try { localStorage.setItem(STORE, JSON.stringify(ST)); } cat
 let ST = loadST();
 if (!ST.grupos) ST.grupos = [];
 if (!ST.listas) ST.listas = [];
+if (!ST.cotizaciones) ST.cotizaciones = {};
 if (!ST.movimientos) ST.movimientos = [];
 if (!ST.nombre) ST.nombre = 'Fran';
 if (!ST.sueldo) ST.sueldo = 0;
@@ -599,6 +610,7 @@ document.getElementById('charts-container').addEventListener('scroll', function(
 
 // ─── RESUMEN ─────────────────────────────────────────────────────────────────
 function renderResumen() {
+  fetchCotizaciones();
   const now = new Date();
   viewYear = now.getFullYear(); viewMonth = now.getMonth();
   const key = currentKey();
@@ -906,6 +918,8 @@ function openFab() {
   document.getElementById('cuotas-wrap').style.display = 'none';
   document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
   document.getElementById('m-fecha-ing').value = new Date().toISOString().split('T')[0];
+  if (document.getElementById('m-moneda')) document.getElementById('m-moneda').value = 'ARS';
+  if (document.getElementById('m-equiv')) document.getElementById('m-equiv').textContent = '';
   document.getElementById('modal-mov-title').textContent = 'Nuevo movimiento';
   document.getElementById('modal-mov-btn').textContent = 'Guardar';
   setMovTipo('gasto');
@@ -928,6 +942,20 @@ function renderSubgruposChips() {
 }
 
 function selectSub(id) { selectedSubgrupo = id; renderSubgruposChips(); }
+
+function updateMonedaLabel() {
+  const moneda = document.getElementById('m-moneda')?.value || 'ARS';
+  const monto = parseFloat(document.getElementById('m-monto')?.value?.replace(',','.')) || 0;
+  const equivEl = document.getElementById('m-equiv');
+  if (!equivEl) return;
+  if (moneda === 'USD' && ST.cotizaciones?.usd) {
+    equivEl.textContent = monto > 0 ? `≈ ${fmt(monto * ST.cotizaciones.usd.venta)} ARS (blue $${ST.cotizaciones.usd.venta})` : `Blue: $${ST.cotizaciones.usd.venta}`;
+  } else if (moneda === 'EUR' && ST.cotizaciones?.eur) {
+    equivEl.textContent = monto > 0 ? `≈ ${fmt(monto * ST.cotizaciones.eur.venta)} ARS (€${ST.cotizaciones.eur.venta})` : `Euro: $${ST.cotizaciones.eur.venta}`;
+  } else {
+    equivEl.textContent = '';
+  }
+}
 
 function setEstado(estado) {
   selectedEstado = estado;
@@ -954,7 +982,11 @@ function calcTotal() {
 
 function guardarMovimiento() {
   const desc = document.getElementById('m-desc').value.trim();
-  const monto = parseFloat(document.getElementById('m-monto').value.replace(',','.'));
+  const moneda = document.getElementById('m-moneda')?.value || 'ARS';
+  const montoRaw = parseFloat(document.getElementById('m-monto').value.replace(',','.'));
+  let monto = montoRaw;
+  if (moneda === 'USD' && ST.cotizaciones?.usd) monto = montoRaw * ST.cotizaciones.usd.venta;
+  if (moneda === 'EUR' && ST.cotizaciones?.eur) monto = montoRaw * ST.cotizaciones.eur.venta;
   if (!desc) { toast('Poné una descripción'); return; }
   if (!monto || monto <= 0) { toast('Ingresá un monto válido'); return; }
 
@@ -996,7 +1028,7 @@ function guardarMovimiento() {
     closeModal('modal-edit');
   } else {
     const movId = Date.now();
-    const mov = { id: movId, desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes, esIngreso: false, estado: selectedEstado };
+    const mov = { id: movId, desc, monto: montoFinal, montoOriginal: montoRaw, moneda, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes, esIngreso: false, estado: selectedEstado };
     ST.movimientos.push(mov);
     // Generate 24 months ahead for mensual
     if (tipo === 'mensual') {
@@ -1263,8 +1295,68 @@ function toggleEstado(id) {
   if (sec) showSection(sec);
 }
 
-// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+// ─── COTIZACIONES ────────────────────────────────────────────────────────────────
+async function fetchCotizaciones(force = false) {
+  const now = Date.now();
+  const lastFetch = ST.cotizaciones?.lastFetch || 0;
+  // Only fetch if forced or last fetch was > 15 mins ago
+  if (!force && (now - lastFetch) < 15 * 60 * 1000) {
+    renderCotizWidget(); return;
+  }
+  try {
+    const [dolRes, eurRes] = await Promise.all([
+      fetch('https://dolarapi.com/v1/dolares/blue'),
+      fetch('https://dolarapi.com/v1/cotizaciones/eur')
+    ]);
+    const dol = await dolRes.json();
+    const eur = await eurRes.json();
+    ST.cotizaciones = {
+      usd: { compra: dol.compra, venta: dol.venta, nombre: 'Blue' },
+      eur: { compra: eur.compra, venta: eur.venta, nombre: 'Euro' },
+      lastFetch: now
+    };
+    saveST();
+  } catch(e) {
+    console.log('Cotizaciones error:', e);
+  }
+  renderCotizWidget();
+}
+
+function renderCotizWidget() {
+  const el = document.getElementById('cotiz-widget');
+  const horaEl = document.getElementById('cotiz-hora');
+  if (!el) return;
+  const c = ST.cotizaciones;
+  if (!c?.usd) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px;">Sin datos · Tocá actualizar</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="background:var(--bg3);border-radius:10px;padding:10px 12px;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:700;">💵 DÓLAR BLUE</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:2px;"><span>Compra</span><span style="color:var(--text);font-weight:600;">$${c.usd.compra?.toLocaleString('es-AR')}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);"><span>Venta</span><span style="color:var(--danger);font-weight:600;">$${c.usd.venta?.toLocaleString('es-AR')}</span></div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:10px 12px;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:700;">💶 EURO</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:2px;"><span>Compra</span><span style="color:var(--text);font-weight:600;">$${c.eur.compra?.toLocaleString('es-AR')}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);"><span>Venta</span><span style="color:var(--accent);font-weight:600;">$${c.eur.venta?.toLocaleString('es-AR')}</span></div>
+      </div>
+    </div>`;
+  if (c.lastFetch && horaEl) {
+    const d = new Date(c.lastFetch);
+    horaEl.textContent = `Actualizado: ${d.toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'})}`;
+  }
+}
+
+// ─── LIMPIAR SERVICE WORKER (nunca más cache) ────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
+  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+}
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 renderResumen();
