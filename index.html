@@ -253,10 +253,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <div><div class="setting-label">Nombre</div><div class="setting-sub">Cómo te llama FICO</div></div>
             <input type="text" id="aj-nombre" value="Fran" style="background:var(--bg3);border:none;border-radius:var(--radius-sm);color:var(--text);font-size:14px;padding:6px 10px;width:100px;text-align:right;outline:none;" oninput="saveNombre(this.value)">
           </div>
-          <div class="setting-row">
-            <div><div class="setting-label">Sueldo mensual</div><div class="setting-sub">Para calcular el balance</div></div>
-            <input type="number" id="aj-sueldo" placeholder="200000" style="background:var(--bg3);border:none;border-radius:var(--radius-sm);color:var(--text);font-size:14px;padding:6px 10px;width:120px;text-align:right;outline:none;" inputmode="numeric" oninput="saveSueldo(this.value)">
-          </div>
+
           <div class="setting-row">
             <div><div class="setting-label">Tema</div><div class="setting-sub">Oscuro o claro</div></div>
             <label class="toggle"><input type="checkbox" id="theme-toggle" onchange="toggleTheme()"><span class="toggle-slider"></span></label>
@@ -311,42 +308,60 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       <span style="font-size:15px;font-weight:700;color:var(--text);" id="modal-mov-title">Nuevo movimiento</span>
       <button id="modal-mov-btn" onclick="guardarMovimiento()" style="background:var(--accent);border:none;border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;">Guardar</button>
     </div>
+    <!-- TOGGLE GASTO / INGRESO -->
+    <div style="display:flex;gap:0;padding:10px 16px 0;">
+      <button id="tog-gasto" onclick="setMovTipo('gasto')" style="flex:1;padding:9px;border:0.5px solid var(--border);border-radius:10px 0 0 10px;font-size:14px;font-weight:600;cursor:pointer;background:var(--danger);color:#fff;border-color:var(--danger);">− Gasto</button>
+      <button id="tog-ingreso" onclick="setMovTipo('ingreso')" style="flex:1;padding:9px;border:0.5px solid var(--border);border-radius:0 10px 10px 0;font-size:14px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--text2);">+ Ingreso</button>
+    </div>
     <!-- BODY scrolleable -->
-    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 24px;max-height:74vh;">
+    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 24px;max-height:70vh;">
       <div class="input-grid">
         <div class="input-group" style="margin-bottom:8px;"><label>Descripción</label><input type="text" id="m-desc" placeholder="Afiches, nafta..."></div>
         <div class="input-group" style="margin-bottom:8px;"><label>Monto ($)</label><input type="number" id="m-monto" placeholder="3500" inputmode="numeric"></div>
       </div>
-      <div class="input-grid">
-        <div class="input-group" style="margin-bottom:8px;"><label>Grupo</label>
-          <select id="m-grupo" onchange="renderSubgruposChips()"><option value="">— Grupo —</option></select>
+      <!-- CAMPOS GASTO -->
+      <div id="campos-gasto">
+        <div class="input-grid">
+          <div class="input-group" style="margin-bottom:8px;"><label>Grupo</label>
+            <select id="m-grupo" onchange="renderSubgruposChips()"><option value="">— Grupo —</option></select>
+          </div>
+          <div class="input-group" style="margin-bottom:8px;"><label>2do grupo</label>
+            <select id="m-grupo2"><option value="">— Ninguno —</option></select>
+          </div>
         </div>
-        <div class="input-group" style="margin-bottom:8px;"><label>2do grupo</label>
-          <select id="m-grupo2"><option value="">— Ninguno —</option></select>
+        <div class="input-group" style="margin-bottom:8px;">
+          <label>Categoría</label>
+          <div class="sub-chips" id="subgrupo-chips"></div>
+        </div>
+        <div class="input-grid">
+          <div class="input-group" style="margin-bottom:8px;"><label>Tipo de pago</label>
+            <select id="m-tipo" onchange="toggleCuotas()">
+              <option value="unico">Pago único</option>
+              <option value="cuotas">En cuotas</option>
+              <option value="efectivo">Efectivo</option>
+            </select>
+          </div>
+          <div class="input-group" style="margin-bottom:8px;"><label>Fecha</label>
+            <input type="date" id="m-fecha">
+          </div>
+        </div>
+        <div id="cuotas-wrap" style="display:none;">
+          <div class="input-grid">
+            <div class="input-group" style="margin-bottom:4px;"><label>Valor cuota ($)</label><input type="number" id="m-cuota-val" placeholder="4000" inputmode="numeric" oninput="calcTotal()"></div>
+            <div class="input-group" style="margin-bottom:4px;"><label>Cant. cuotas</label><input type="number" id="m-cuota-cant" placeholder="3" inputmode="numeric" oninput="calcTotal()"></div>
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:8px;" id="cuota-total-label"></div>
         </div>
       </div>
-      <div class="input-group" style="margin-bottom:8px;">
-        <label>Categoría</label>
-        <div class="sub-chips" id="subgrupo-chips"></div>
-      </div>
-      <div class="input-grid">
-        <div class="input-group" style="margin-bottom:8px;"><label>Tipo de pago</label>
-          <select id="m-tipo" onchange="toggleCuotas()">
-            <option value="unico">Pago único</option>
-            <option value="cuotas">En cuotas</option>
-            <option value="efectivo">Efectivo</option>
-          </select>
+      <!-- CAMPOS INGRESO -->
+      <div id="campos-ingreso" style="display:none;">
+        <div class="input-group" style="margin-bottom:8px;">
+          <label>Categoría</label>
+          <div class="sub-chips" id="ingreso-chips"></div>
         </div>
         <div class="input-group" style="margin-bottom:8px;"><label>Fecha</label>
-          <input type="date" id="m-fecha">
+          <input type="date" id="m-fecha-ing">
         </div>
-      </div>
-      <div id="cuotas-wrap" style="display:none;">
-        <div class="input-grid">
-          <div class="input-group" style="margin-bottom:4px;"><label>Valor cuota ($)</label><input type="number" id="m-cuota-val" placeholder="4000" inputmode="numeric" oninput="calcTotal()"></div>
-          <div class="input-group" style="margin-bottom:4px;"><label>Cant. cuotas</label><input type="number" id="m-cuota-cant" placeholder="3" inputmode="numeric" oninput="calcTotal()"></div>
-        </div>
-        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;" id="cuota-total-label"></div>
       </div>
     </div>
   </div>
@@ -406,6 +421,18 @@ const SUBGRUPOS = [
 ];
 
 const SUBGRUPO_MAP = Object.fromEntries(SUBGRUPOS.map(s => [s.id, s.label]));
+
+const INGRESOS_CATS = [
+  {id:'sueldo', label:'💼 Sueldo'},
+  {id:'extra', label:'💰 Ingreso extra'},
+  {id:'freelance', label:'💻 Freelance'},
+  {id:'venta', label:'📦 Venta'},
+  {id:'devolucion', label:'🔄 Devolución'},
+  {id:'regalo', label:'🎁 Regalo / préstamo'},
+  {id:'inversion', label:'📈 Inversión'},
+  {id:'otro_ing', label:'🏦 Otro'},
+];
+const INGRESO_MAP = Object.fromEntries(INGRESOS_CATS.map(s => [s.id, s.label]));
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const STORE = 'fico_v2';
@@ -500,10 +527,12 @@ function makeDonut(id, labels, data, colors) {
 function renderCharts() {
   const key = currentKey();
   const movsMes = ST.movimientos.filter(m => m.mes === key);
+  const gastosMes = movsMes.filter(m => !m.esIngreso);
+  const ingresosMes = movsMes.filter(m => m.esIngreso);
 
   // Chart 1: Gasto del mes por subgrupo
   const bySubgrupo = {};
-  movsMes.forEach(m => {
+  gastosMes.forEach(m => {
     const sub = m.subgrupo || 'otros';
     bySubgrupo[sub] = (bySubgrupo[sub] || 0) + m.monto;
   });
@@ -518,7 +547,7 @@ function renderCharts() {
 
   // Chart 2: Por grupo
   const byGrupo = {};
-  movsMes.forEach(m => {
+  gastosMes.forEach(m => {
     if (m.grupoId) byGrupo[m.grupoId] = (byGrupo[m.grupoId] || 0) + m.monto;
     if (m.grupoId2) byGrupo[m.grupoId2] = (byGrupo[m.grupoId2] || 0) + m.monto;
   });
@@ -531,26 +560,26 @@ function renderCharts() {
   document.getElementById('legend-grupo').innerHTML = gLabels.map((l, i) =>
     `<span><span class="legend-dot" style="background:${gColors[i]};"></span>${l}</span>`).join('');
 
-  // Chart 3: Balance
-  const sueldo = ST.sueldo || 0;
-  const deuda = totalGasto;
-  const libre = Math.max(sueldo - deuda, 0);
-  const endeudado = Math.max(deuda - sueldo, 0);
-  document.getElementById('cv-balance').textContent = sueldo > 0 ? fmt(endeudado > 0 ? -endeudado : libre) : '—';
-  document.getElementById('cv-balance').style.color = endeudado > 0 ? 'var(--danger)' : 'var(--accent)';
-  document.getElementById('cv-balance-label').textContent = endeudado > 0 ? 'en rojo' : 'disponible';
-  if (sueldo > 0) {
-    makeDonut('chart-balance', ['Gastado','Libre'], [deuda, libre], ['#E24B4A','#1D9E75']);
+  // Chart 3: Balance ingresos vs gastos
+  const totalIngChart = ingresosMes.reduce((a,m) => a+m.monto, 0);
+  const totalGasChart = gastosMes.reduce((a,m) => a+m.monto, 0);
+  const libreChart = totalIngChart - totalGasChart;
+  const endeudado = libreChart < 0 ? Math.abs(libreChart) : 0;
+  document.getElementById('cv-balance').textContent = fmt(Math.abs(libreChart));
+  document.getElementById('cv-balance').style.color = libreChart >= 0 ? 'var(--accent)' : 'var(--danger)';
+  document.getElementById('cv-balance-label').textContent = libreChart >= 0 ? 'disponible' : 'en rojo';
+  if (totalIngChart > 0 || totalGasChart > 0) {
+    makeDonut('chart-balance', ['Ingresos','Gastos'], [totalIngChart, totalGasChart], ['#1D9E75','#E24B4A']);
     document.getElementById('legend-balance').innerHTML =
-      `<span><span class="legend-dot" style="background:#E24B4A;"></span>Gastado</span>
-       <span><span class="legend-dot" style="background:#1D9E75;"></span>Disponible</span>`;
-    if (endeudado > 0 && totalGasto > 0) {
-      const meses = Math.ceil(endeudado / (totalGasto * 0.1));
+      `<span><span class="legend-dot" style="background:#1D9E75;"></span>Ingresos</span>
+       <span><span class="legend-dot" style="background:#E24B4A;"></span>Gastos</span>`;
+    if (endeudado > 0 && totalGasChart > 0) {
+      const meses = Math.ceil(endeudado / (totalGasChart * 0.1));
       document.getElementById('balance-revert').textContent = `Reduciendo un 10% tu gasto, revertís en ~${meses} mes${meses!==1?'es':''}`;
-    } else { document.getElementById('balance-revert').textContent = ''; }
+    } else { document.getElementById('balance-revert').textContent = libreChart > 0 ? `Te sobran ${fmt(libreChart)} este mes` : ''; }
   } else {
     makeDonut('chart-balance', [], [], []);
-    document.getElementById('balance-revert').textContent = 'Ingresá tu sueldo en Ajustes para ver el balance';
+    document.getElementById('balance-revert').textContent = 'Agregá ingresos y gastos para ver el balance';
   }
 }
 
@@ -573,27 +602,33 @@ function renderResumen() {
   document.getElementById('hello-name').textContent = `Hola, ${ST.nombre} 👋`;
   document.getElementById('hello-sub').textContent = monthName(viewYear, viewMonth);
 
+  const totalIngresos = movsMes.filter(m => m.esIngreso).reduce((a,m) => a+m.monto, 0);
+  const totalGastosSolo = movsMes.filter(m => !m.esIngreso).reduce((a,m) => a+m.monto, 0);
+  const libreReal = totalIngresos - totalGastosSolo;
   document.getElementById('metric-row').innerHTML = `
-    <div class="metric"><div class="metric-label">Sueldo</div><div class="metric-val">${sueldo > 0 ? fmt(sueldo) : '—'}</div></div>
-    <div class="metric"><div class="metric-label">Gastado</div><div class="metric-val red">${fmt(totalGasto)}</div></div>
-    <div class="metric"><div class="metric-label">Libre</div><div class="metric-val ${libre >= 0 ? 'green' : 'red'}">${sueldo > 0 ? fmt(libre) : '—'}</div></div>`;
+    <div class="metric"><div class="metric-label">Ingresos</div><div class="metric-val green">${fmt(totalIngresos)}</div></div>
+    <div class="metric"><div class="metric-label">Gastos</div><div class="metric-val red">${fmt(totalGastosSolo)}</div></div>
+    <div class="metric"><div class="metric-label">Libre</div><div class="metric-val ${libreReal >= 0 ? 'green' : 'red'}">${fmt(libreReal)}</div></div>`;
 
   renderCharts();
 
   const ultimos = [...ST.movimientos].reverse().slice(0, 5);
   document.getElementById('ultimos-movs').innerHTML = ultimos.length ?
     ultimos.map(m => {
-      const g = ST.grupos.find(x => x.id === m.grupoId);
-      const sub = SUBGRUPO_MAP[m.subgrupo] || '📋 Otros';
+      const g = m.esIngreso ? null : ST.grupos.find(x => x.id === m.grupoId);
+      const sub = m.esIngreso ? (INGRESO_MAP[m.catIngreso] || '💼 Ingreso') : (SUBGRUPO_MAP[m.subgrupo] || '📋 Otros');
+      const dotColor = m.esIngreso ? '#1D9E75' : (g?.color || '#888');
+      const montoColor = m.esIngreso ? 'var(--accent)' : 'var(--text)';
+      const montoPrefix = m.esIngreso ? '+' : '-';
       return `<div class="row">
         <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
-          <div style="width:8px;height:8px;border-radius:50%;background:${g?.color||'#888'};flex-shrink:0;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>
           <div style="min-width:0;">
             <div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.desc}</div>
-            <div style="font-size:11px;color:var(--text3);">${g?.nombre||'—'} · ${sub.replace(/^.+ /,'')}</div>
+            <div style="font-size:11px;color:var(--text3);">${m.esIngreso ? '✓ Ingreso' : (g?.nombre||'—')} · ${sub.replace(/^.+ /,'')}</div>
           </div>
         </div>
-        <div style="font-size:13px;font-weight:600;flex-shrink:0;">${fmt(m.monto)}</div>
+        <div style="font-size:13px;font-weight:600;flex-shrink:0;color:${montoColor};">${montoPrefix}${fmt(m.monto)}</div>
       </div>`;
     }).join('') :
     '<div class="empty-state"><div class="empty-icon">📭</div>Aún no hay movimientos.<br>Tocá + para agregar uno.</div>';
@@ -732,15 +767,43 @@ function renderMovimientos() {
     return;
   }
 
-  // Group by grupo
+  // Separate ingresos and gastos
+  const ingMes = movsMes.filter(m => m.esIngreso);
+  const gasMes = movsMes.filter(m => !m.esIngreso);
+
+  // Group gastos by grupo
   const byGrupo = {};
-  movsMes.forEach(m => {
+  gasMes.forEach(m => {
     const gid = m.grupoId || 'sin-grupo';
     if (!byGrupo[gid]) byGrupo[gid] = [];
     byGrupo[gid].push(m);
   });
 
   let html = '';
+
+  // Show ingresos at top
+  if (ingMes.length) {
+    const totalIng = ingMes.reduce((a,m) => a+m.monto, 0);
+    html += `<div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0 6px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);"></div>
+        <span style="font-size:13px;font-weight:700;color:var(--text2);">Ingresos</span>
+        <span style="font-size:12px;color:var(--accent);margin-left:auto;">+${fmt(totalIng)}</span>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);overflow:hidden;">`;
+    ingMes.forEach(m => {
+      const cat = INGRESO_MAP[m.catIngreso] || '💼 Ingreso';
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:0.5px solid var(--border);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:var(--text);">${m.desc}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px;">${cat.replace(/^.+ /,'')} · ${m.fecha||''}</div>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--accent);">+${fmt(m.monto)}</div>
+        <button onclick="deleteMovimiento(${m.id},null)" class="btn-danger-sm">×</button>
+      </div>`;
+    });
+    html += '</div></div>';
+  }
   Object.keys(byGrupo).forEach(gid => {
     const g = ST.grupos.find(x => x.id == gid);
     const movs = byGrupo[gid];
@@ -771,9 +834,35 @@ function renderMovimientos() {
 }
 
 // ─── FAB / AGREGAR MOVIMIENTO ─────────────────────────────────────────────────
+let currentMovTipo = 'gasto';
+let selectedIngresoCat = 'sueldo';
+
+function setMovTipo(tipo) {
+  currentMovTipo = tipo;
+  const isGasto = tipo === 'gasto';
+  document.getElementById('tog-gasto').style.background = isGasto ? 'var(--danger)' : 'var(--bg3)';
+  document.getElementById('tog-gasto').style.color = isGasto ? '#fff' : 'var(--text2)';
+  document.getElementById('tog-gasto').style.borderColor = isGasto ? 'var(--danger)' : 'var(--border)';
+  document.getElementById('tog-ingreso').style.background = !isGasto ? 'var(--accent)' : 'var(--bg3)';
+  document.getElementById('tog-ingreso').style.color = !isGasto ? '#fff' : 'var(--text2)';
+  document.getElementById('tog-ingreso').style.borderColor = !isGasto ? 'var(--accent)' : 'var(--border)';
+  document.getElementById('campos-gasto').style.display = isGasto ? 'block' : 'none';
+  document.getElementById('campos-ingreso').style.display = !isGasto ? 'block' : 'none';
+  if (!isGasto) renderIngresosChips();
+}
+
+function renderIngresosChips() {
+  document.getElementById('ingreso-chips').innerHTML = INGRESOS_CATS.map(s =>
+    `<div class="sub-chip ${s.id === selectedIngresoCat ? 'selected' : ''}" onclick="selectIngresoCat('${s.id}')">${s.label}</div>`).join('');
+}
+
+function selectIngresoCat(id) { selectedIngresoCat = id; renderIngresosChips(); }
+
 function openFab() {
   editingMovId = null;
   selectedSubgrupo = '';
+  selectedIngresoCat = 'sueldo';
+  currentMovTipo = 'gasto';
   document.getElementById('m-desc').value = '';
   document.getElementById('m-monto').value = '';
   document.getElementById('m-tipo').value = 'unico';
@@ -782,8 +871,10 @@ function openFab() {
   document.getElementById('cuota-total-label').textContent = '';
   document.getElementById('cuotas-wrap').style.display = 'none';
   document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('m-fecha-ing').value = new Date().toISOString().split('T')[0];
   document.getElementById('modal-mov-title').textContent = 'Nuevo movimiento';
   document.getElementById('modal-mov-btn').textContent = 'Guardar';
+  setMovTipo('gasto');
   populateGrupoSelects();
   renderSubgruposChips();
   openModal('modal-mov');
@@ -816,22 +907,34 @@ function calcTotal() {
 
 function guardarMovimiento() {
   const desc = document.getElementById('m-desc').value.trim();
+  const monto = parseFloat(document.getElementById('m-monto').value);
+  if (!desc) { toast('Poné una descripción'); return; }
+  if (!monto || monto <= 0) { toast('Ingresá un monto válido'); return; }
+
+  if (currentMovTipo === 'ingreso') {
+    const fecha = document.getElementById('m-fecha-ing').value;
+    const fechaDate = fecha ? new Date(fecha + 'T00:00:00') : new Date();
+    const mes = monthKey(fechaDate.getFullYear(), fechaDate.getMonth());
+    const mov = { id: Date.now(), desc, monto, esIngreso: true, catIngreso: selectedIngresoCat, fecha, mes };
+    ST.movimientos.push(mov);
+    saveST(); toast('Ingreso agregado ✓'); closeModal('modal-mov');
+    const sec = document.querySelector('.section.visible')?.id?.replace('sec-','');
+    if (sec) showSection(sec);
+    return;
+  }
+
   const grupoId = parseInt(document.getElementById('m-grupo').value) || null;
   const grupoId2 = parseInt(document.getElementById('m-grupo2').value) || null;
   const tipo = document.getElementById('m-tipo').value;
   const fecha = document.getElementById('m-fecha').value;
-  if (!desc) { toast('Poné una descripción'); return; }
   if (!grupoId) { toast('Elegí un grupo'); return; }
 
-  let monto, cuotaTotal, cuotaVal;
+  let montoFinal = monto, cuotaTotal, cuotaVal;
   if (tipo === 'cuotas') {
     cuotaVal = parseFloat(document.getElementById('m-cuota-val').value);
     cuotaTotal = parseInt(document.getElementById('m-cuota-cant').value);
     if (!cuotaVal || !cuotaTotal) { toast('Completá valor y cantidad de cuotas'); return; }
-    monto = cuotaVal;
-  } else {
-    monto = parseFloat(document.getElementById('m-monto').value);
-    if (!monto || monto <= 0) { toast('Ingresá un monto válido'); return; }
+    montoFinal = cuotaVal;
   }
 
   const fechaDate = fecha ? new Date(fecha + 'T00:00:00') : new Date();
@@ -840,26 +943,23 @@ function guardarMovimiento() {
   if (editingMovId) {
     const idx = ST.movimientos.findIndex(m => m.id === editingMovId);
     if (idx >= 0) {
-      ST.movimientos[idx] = { ...ST.movimientos[idx], desc, monto, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes };
+      ST.movimientos[idx] = { ...ST.movimientos[idx], desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes };
     }
     toast('Movimiento actualizado ✓');
     closeModal('modal-edit');
   } else {
-    const mov = { id: Date.now(), desc, monto, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes };
+    const mov = { id: Date.now(), desc, monto: montoFinal, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes, esIngreso: false };
     ST.movimientos.push(mov);
-
-    // Generar cuotas futuras automáticamente
     if (tipo === 'cuotas' && cuotaTotal > 1) {
-      mov.cuotaActual = 1;
-      mov.cuotaTotal = cuotaTotal;
+      mov.cuotaActual = 1; mov.cuotaTotal = cuotaTotal;
       for (let i = 1; i < cuotaTotal; i++) {
         const fd = new Date(fechaDate.getFullYear(), fechaDate.getMonth() + i, 1);
-        const futureMes = monthKey(fd.getFullYear(), fd.getMonth());
         ST.movimientos.push({
           id: Date.now() + i, desc: `${desc} (cuota ${i+1}/${cuotaTotal})`,
           monto: cuotaVal, grupoId, grupoId2, subgrupo: selectedSubgrupo,
-          tipo: 'cuotas', fecha: fd.toISOString().split('T')[0], mes: futureMes,
-          cuotaActual: i+1, cuotaTotal, esAutogenerada: true
+          tipo: 'cuotas', fecha: fd.toISOString().split('T')[0],
+          mes: monthKey(fd.getFullYear(), fd.getMonth()),
+          cuotaActual: i+1, cuotaTotal, esAutogenerada: true, esIngreso: false
         });
       }
     }
