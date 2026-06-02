@@ -6,1195 +6,917 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FICO">
-<meta name="theme-color" content="#1a1a1a" id="theme-meta">
+<meta name="theme-color" content="#111111" id="theme-meta">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>FICO</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg: #111;
-  --bg2: #1c1c1e;
-  --bg3: #2c2c2e;
-  --border: rgba(255,255,255,0.1);
-  --text: #f5f5f5;
-  --text2: #a0a0a0;
-  --text3: #666;
-  --accent: #1d9e75;
-  --accent2: #5dcaa5;
-  --danger: #e24b4a;
-  --warn: #ef9f27;
-  --purple: #7f77dd;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --bg: #111; --bg2: #1c1c1e; --bg3: #2c2c2e; --bg4: #3a3a3c;
+  --border: rgba(255,255,255,0.09); --text: #f5f5f5; --text2: #a0a0a0; --text3: #555;
+  --accent: #1d9e75; --danger: #e24b4a; --warn: #ef9f27;
+  --radius: 14px; --radius-sm: 10px;
+  --safe-top: env(safe-area-inset-top,0px); --safe-bot: env(safe-area-inset-bottom,0px);
 }
 [data-theme="light"] {
-  --bg: #f2f2f7;
-  --bg2: #ffffff;
-  --bg3: #e5e5ea;
-  --border: rgba(0,0,0,0.1);
-  --text: #1c1c1e;
-  --text2: #6c6c70;
-  --text3: #aeaeb2;
-  --accent: #1d9e75;
-  --accent2: #0f6e56;
+  --bg:#f2f2f7; --bg2:#fff; --bg3:#e5e5ea; --bg4:#d1d1d6;
+  --border:rgba(0,0,0,0.08); --text:#1c1c1e; --text2:#6c6c70; --text3:#aeaeb2;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;}
+.app{display:flex;flex-direction:column;height:100%;padding-top:var(--safe-top);}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0;}
+.topbar-title{font-size:17px;font-weight:700;color:var(--text);}
+.icon-btn{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text2);}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:90px;position:relative;}
+.bottom-nav{display:flex;background:var(--bg2);border-top:0.5px solid var(--border);padding-bottom:var(--safe-bot);flex-shrink:0;position:relative;z-index:10;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:10px;gap:3px;transition:color 0.15s;}
+.nav-item svg{width:22px;height:22px;}
+.nav-item.active{color:var(--accent);}
+.section{display:none;padding:0;}
+.section.visible{display:block;}
+.card{background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);padding:14px 16px;margin-bottom:12px;}
+.card-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;}
+.row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--border);}
+.row:last-child{border-bottom:none;}
+.input-group{margin-bottom:10px;}
+.input-group label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px;}
+.input-group input,.input-group select,.input-group textarea{width:100%;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:15px;padding:10px 12px;outline:none;-webkit-appearance:none;font-family:inherit;}
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-primary{width:100%;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:15px;font-weight:600;padding:13px;cursor:pointer;margin-top:6px;}
+.btn-ghost{background:var(--bg3);border:none;border-radius:var(--radius-sm);color:var(--text2);font-size:13px;padding:8px 14px;cursor:pointer;}
+.btn-danger-sm{background:transparent;border:none;color:var(--danger);font-size:20px;padding:2px 8px;cursor:pointer;line-height:1;}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;}
+.badge-ok{background:rgba(29,158,117,0.18);color:#1d9e75;}
+.badge-warn{background:rgba(239,159,39,0.18);color:#ef9f27;}
+.badge-danger{background:rgba(226,75,74,0.18);color:#e24b4a;}
+.toast{position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;transform:translateX(-50%);background:var(--bg2);border:0.5px solid var(--border);border-radius:20px;padding:10px 20px;font-size:13px;color:var(--text);z-index:999;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
 
-.app-shell {
-  display: flex; flex-direction: column; height: 100%;
-  padding-top: var(--safe-top);
-}
+/* FAB */
+.fab{position:fixed;bottom:calc(76px + var(--safe-bot));right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:50;box-shadow:0 4px 20px rgba(29,158,117,0.4);}
+.fab svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
-/* TOP BAR */
-.topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px 8px;
-  background: var(--bg);
-  border-bottom: 0.5px solid var(--border);
-  flex-shrink: 0;
-}
-.topbar-title { font-size: 17px; font-weight: 600; color: var(--text); }
-.topbar-right { display: flex; gap: 10px; }
-.icon-btn {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: var(--bg3); border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; color: var(--text2);
-}
-.icon-btn:active { opacity: 0.6; }
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:0 0 calc(20px + var(--safe-bot));}
+.modal-handle{width:36px;height:4px;background:var(--bg4);border-radius:2px;margin:12px auto 16px;}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);padding:0 16px 16px;}
+.modal-body{padding:0 16px;}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--bg3);border:none;border-radius:50%;width:30px;height:30px;font-size:16px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
 
-/* SCROLL CONTENT */
-.content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 0 16px; }
+/* SWIPE CHARTS */
+.charts-container{overflow-x:auto;scroll-snap-type:x mandatory;display:flex;scrollbar-width:none;-ms-overflow-style:none;}
+.charts-container::-webkit-scrollbar{display:none;}
+.chart-slide{min-width:100%;scroll-snap-align:start;padding:16px;}
+.chart-dots{display:flex;justify-content:center;gap:6px;padding:0 0 12px;}
+.chart-dot{width:6px;height:6px;border-radius:50%;background:var(--bg4);transition:background 0.2s;}
+.chart-dot.active{background:var(--accent);}
+.chart-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;text-align:center;margin-bottom:12px;}
+.chart-wrap{position:relative;width:180px;height:180px;margin:0 auto;}
+.chart-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+.chart-center-val{font-size:18px;font-weight:700;color:var(--text);}
+.chart-center-label{font-size:10px;color:var(--text2);margin-top:2px;}
+.chart-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center;}
+.chart-legend span{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
 
-/* BOTTOM NAV */
-.bottom-nav {
-  display: flex; background: var(--bg2);
-  border-top: 0.5px solid var(--border);
-  padding-bottom: var(--safe-bot);
-  flex-shrink: 0;
-}
-.nav-item {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  padding: 8px 4px; border: none; background: transparent; cursor: pointer;
-  color: var(--text3); font-size: 10px; gap: 3px; transition: color 0.15s;
-}
-.nav-item .nav-icon { font-size: 22px; line-height: 1; display:flex; align-items:center; justify-content:center; height:24px; }
-.nav-item.active { color: var(--accent); }
-.nav-item:active { opacity: 0.6; }
+/* RESUMEN */
+.hello{padding:20px 16px 4px;}
+.hello-name{font-size:26px;font-weight:700;color:var(--text);}
+.hello-sub{font-size:13px;color:var(--text2);margin-top:2px;}
+.metric-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 16px;}
+.metric{background:var(--bg2);border-radius:var(--radius-sm);border:0.5px solid var(--border);padding:10px 12px;}
+.metric-label{font-size:10px;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;}
+.metric-val{font-size:16px;font-weight:700;}
+.metric-val.red{color:var(--danger);}
+.metric-val.green{color:var(--accent);}
+.metric-val.warn{color:var(--warn);}
 
-/* SECTIONS */
-.section { display: none; padding: 0 16px; }
-.section.visible { display: block; }
+/* GRUPOS */
+.grupo-header{display:flex;align-items:center;gap:10px;padding:14px 16px 8px;}
+.grupo-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.grupo-name{font-size:16px;font-weight:700;color:var(--text);flex:1;}
+.grupo-total{font-size:13px;color:var(--text2);}
+.movimiento{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:0.5px solid var(--border);}
+.mov-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.mov-info{flex:1;min-width:0;}
+.mov-desc{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mov-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.mov-monto{font-size:14px;font-weight:600;color:var(--text);flex-shrink:0;}
+.mov-cuota{font-size:10px;color:var(--text3);text-align:right;margin-top:2px;}
 
-/* CARDS */
-.card {
-  background: var(--bg2); border-radius: var(--radius);
-  border: 0.5px solid var(--border);
-  padding: 14px 16px; margin-bottom: 12px;
-}
-.card-title {
-  font-size: 12px; font-weight: 600; color: var(--text2);
-  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
-}
+/* COLOR PICKER */
+.color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:8px;}
+.color-opt{width:100%;aspect-ratio:1;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform 0.15s;}
+.color-opt.selected{border-color:var(--text);transform:scale(1.1);}
 
-/* METRIC GRID */
-.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 16px; }
-.metric {
-  background: var(--bg2); border-radius: var(--radius);
-  border: 0.5px solid var(--border); padding: 12px;
-}
-.metric-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
-.metric-val { font-size: 20px; font-weight: 600; color: var(--text); }
-.metric-val.danger { color: var(--danger); }
-.metric-val.warn { color: var(--warn); }
-.metric-val.ok { color: var(--accent); }
-
-/* ROWS */
-.row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 0; border-bottom: 0.5px solid var(--border);
-  font-size: 14px;
-}
-.row:last-child { border-bottom: none; }
-.row-label { color: var(--text); font-size: 14px; }
-.row-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
-.row-right { text-align: right; flex-shrink: 0; margin-left: 10px; }
-
-/* INPUTS */
-.input-group { margin-bottom: 10px; }
-.input-group label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
-.input-group input, .input-group select {
-  width: 100%; background: var(--bg3); border: 0.5px solid var(--border);
-  border-radius: var(--radius-sm); color: var(--text);
-  font-size: 15px; padding: 10px 12px; outline: none;
-  -webkit-appearance: none;
-}
-.input-group input::placeholder { color: var(--text3); }
-.input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-/* BUTTONS */
-.btn-primary {
-  width: 100%; background: var(--accent); border: none; border-radius: var(--radius-sm);
-  color: #fff; font-size: 15px; font-weight: 600; padding: 13px;
-  cursor: pointer; margin-top: 6px;
-}
-.btn-primary:active { opacity: 0.8; }
-.btn-ghost {
-  background: var(--bg3); border: none; border-radius: var(--radius-sm);
-  color: var(--text2); font-size: 13px; padding: 8px 14px; cursor: pointer;
-}
-.btn-danger { color: var(--danger); background: transparent; border: none; font-size: 18px; padding: 4px 8px; cursor: pointer; }
-
-/* PROGRESS */
-.progress-bar { height: 5px; border-radius: 3px; background: var(--bg3); margin-top: 6px; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-
-/* TIP */
-.tip {
-  background: rgba(29,158,117,0.12); border-radius: var(--radius-sm);
-  border: 0.5px solid rgba(29,158,117,0.3);
-  padding: 12px 14px; margin-bottom: 10px;
-  font-size: 13px; color: var(--accent2); line-height: 1.5;
-  display: flex; gap: 10px; align-items: flex-start;
-}
-.tip-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-.tip.warn-tip { background: rgba(239,159,39,0.1); border-color: rgba(239,159,39,0.3); color: #ba7517; }
-.tip.danger-tip { background: rgba(226,75,74,0.1); border-color: rgba(226,75,74,0.3); color: var(--danger); }
-
-/* BADGE */
-.badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
-.badge-danger { background: rgba(226,75,74,0.15); color: var(--danger); }
-.badge-ok { background: rgba(29,158,117,0.15); color: var(--accent); }
-.badge-warn { background: rgba(239,159,39,0.15); color: var(--warn); }
+/* SUBGRUPO CHIPS */
+.sub-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.sub-chip{padding:6px 12px;border-radius:20px;background:var(--bg3);border:0.5px solid var(--border);font-size:13px;color:var(--text2);cursor:pointer;}
+.sub-chip.selected{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 /* SECTION HEADER */
-.sec-header { padding: 16px 16px 6px; font-size: 22px; font-weight: 700; color: var(--text); }
-.sec-sub { padding: 0 16px 12px; font-size: 14px; color: var(--text2); }
+.sec-pad{padding:0 16px;}
+.sec-title{font-size:22px;font-weight:700;color:var(--text);padding:16px 16px 4px;}
+.back-btn{background:transparent;border:none;color:var(--text2);font-size:14px;padding:14px 16px 4px;cursor:pointer;display:flex;align-items:center;gap:4px;}
 
-/* MONTH SELECTOR */
-.month-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 16px; margin-bottom: 4px;
-}
-.month-label { font-size: 15px; font-weight: 600; color: var(--text); }
-.month-nav { display: flex; gap: 8px; }
-.month-nav button {
-  width: 30px; height: 30px; border-radius: 50%; background: var(--bg3);
-  border: none; color: var(--text2); font-size: 16px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-}
+/* SETTINGS */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:0.5px solid var(--border);}
+.setting-label{font-size:15px;color:var(--text);}
+.setting-sub{font-size:12px;color:var(--text3);margin-top:2px;}
 
-/* EXPORT */
-.export-box {
-  background: var(--bg3); border-radius: var(--radius-sm);
-  padding: 12px; font-size: 12px; color: var(--text2);
-  font-family: monospace; white-space: pre-wrap; margin-top: 10px;
-  max-height: 200px; overflow-y: auto;
-}
+/* TOGGLE */
+.toggle{position:relative;width:44px;height:26px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--bg4);border-radius:13px;transition:0.2s;cursor:pointer;}
+.toggle-slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:0.2s;}
+.toggle input:checked+.toggle-slider{background:var(--accent);}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px);}
 
-/* TOAST */
-.toast {
-  position: fixed; bottom: calc(80px + var(--safe-bot)); left: 50%; transform: translateX(-50%);
-  background: var(--bg2); border: 0.5px solid var(--border);
-  border-radius: 20px; padding: 10px 20px;
-  font-size: 13px; color: var(--text); z-index: 999;
-  opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap;
-}
-.toast.show { opacity: 1; }
-
-/* CHART */
-.chart-wrap { position: relative; width: 100%; height: 200px; }
-.chart-wrap-sm { position: relative; width: 100%; height: 170px; }
-
-/* PIE LEGEND */
-.pie-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.pie-legend span { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
-.pie-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
-
-/* NOTIFICATION BANNER */
-.notif-banner {
-  background: rgba(127,119,221,0.12); border: 0.5px solid rgba(127,119,221,0.3);
-  border-radius: var(--radius-sm); padding: 12px 14px;
-  font-size: 13px; color: var(--purple); display: flex; gap: 10px; align-items: center;
-  margin-bottom: 10px;
-}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;}
+.empty-state .empty-icon{font-size:40px;margin-bottom:12px;}
 </style>
 </head>
 <body>
-
-<div class="app-shell">
+<div class="app">
   <div class="topbar">
     <div class="topbar-title" id="topbar-title">FICO</div>
-    <div class="topbar-right">
-      <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="Cambiar tema">☀</button>
-      <button class="icon-btn" onclick="showExport()" title="Exportar">↑</button>
+    <div style="display:flex;gap:8px;">
+      <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
+      <button class="icon-btn" onclick="showSection('ajustes')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
     </div>
   </div>
 
-  <div class="content" id="main-content">
+  <div class="content">
 
     <!-- RESUMEN -->
     <div class="section visible" id="sec-resumen">
-      <div class="month-bar">
-        <div class="month-label" id="resumen-mes"></div>
-        <div class="month-nav">
-          <button onclick="changeViewMonth(-1)">‹</button>
-          <button onclick="changeViewMonth(1)">›</button>
+      <div class="hello">
+        <div class="hello-name" id="hello-name">Hola, Fran 👋</div>
+        <div class="hello-sub" id="hello-sub"></div>
+      </div>
+      <div class="charts-container" id="charts-container">
+        <div class="chart-slide">
+          <div class="chart-title">Gasto del mes</div>
+          <div class="chart-wrap"><canvas id="chart-gasto" role="img" aria-label="Gasto del mes por subgrupo"></canvas>
+            <div class="chart-center"><div class="chart-center-val" id="cv-gasto">$0</div><div class="chart-center-label">gastado</div></div>
+          </div>
+          <div class="chart-legend" id="legend-gasto"></div>
+        </div>
+        <div class="chart-slide">
+          <div class="chart-title">Por grupo</div>
+          <div class="chart-wrap"><canvas id="chart-grupo" role="img" aria-label="Deuda por grupo"></canvas>
+            <div class="chart-center"><div class="chart-center-val" id="cv-grupo">$0</div><div class="chart-center-label">total grupos</div></div>
+          </div>
+          <div class="chart-legend" id="legend-grupo"></div>
+        </div>
+        <div class="chart-slide">
+          <div class="chart-title">Balance general</div>
+          <div class="chart-wrap"><canvas id="chart-balance" role="img" aria-label="Balance deuda vs libre"></canvas>
+            <div class="chart-center"><div class="chart-center-val" id="cv-balance" style="color:var(--danger);">—</div><div class="chart-center-label" id="cv-balance-label">endeudado</div></div>
+          </div>
+          <div class="chart-legend" id="legend-balance"></div>
+          <div id="balance-revert" style="text-align:center;margin-top:10px;font-size:12px;color:var(--text2);"></div>
         </div>
       </div>
-      <div class="metric-grid" id="resumen-metrics"></div>
-      <div style="padding: 0 16px;">
-        <div class="card">
-          <div class="card-title">Gastos por categoría</div>
-          <div class="chart-wrap-sm"><canvas id="pieChart" role="img" aria-label="Torta de gastos por categoría del mes"></canvas></div>
-          <div class="pie-legend" id="pie-legend"></div>
-        </div>
+      <div class="chart-dots" id="chart-dots">
+        <div class="chart-dot active"></div>
+        <div class="chart-dot"></div>
+        <div class="chart-dot"></div>
+      </div>
+      <div class="metric-row" id="metric-row"></div>
+      <div style="padding:0 16px;">
         <div class="card">
           <div class="card-title">Últimos movimientos</div>
-          <div id="ultimos-gastos"></div>
+          <div id="ultimos-movs"></div>
         </div>
       </div>
     </div>
 
-    <!-- DEUDAS -->
-    <div class="section" id="sec-deudas">
-      <div class="sec-header">Deudas</div>
-      <div class="sec-sub">Cargá cada tarjeta o deuda que tengas.</div>
-      <div style="padding: 0 16px;">
-        <div class="card">
-          <div class="card-title">Agregar deuda</div>
-          <div class="input-group"><label>Categoría</label>
-            <select id="d-cat">
-              <option value="Tarjetas">💳 Tarjetas de crédito</option>
-              <option value="Préstamos">🏦 Préstamos / cuotas</option>
-              <option value="Personas">🤝 Deudas con personas</option>
-              <option value="Billeteras">📱 Billeteras digitales</option>
-              <option value="Otro">📋 Otro</option>
-            </select>
-          </div>
-          <div class="input-grid">
-            <div class="input-group"><label>Nombre</label><input type="text" id="d-nombre" placeholder="Galicia Visa"></div>
-            <div class="input-group"><label>Saldo total ($)</label><input type="number" id="d-saldo" placeholder="150000" inputmode="numeric"></div>
-            <div class="input-group"><label>Pago mínimo ($)</label><input type="number" id="d-minimo" placeholder="12000" inputmode="numeric"></div>
-            <div class="input-group"><label>Tasa mensual (%)</label><input type="number" id="d-tasa" placeholder="8.5" step="0.1" inputmode="decimal"></div>
-          </div>
-          <button class="btn-primary" onclick="addDeuda()">+ Agregar deuda</button>
+    <!-- GRUPOS -->
+    <div class="section" id="sec-grupos">
+      <div id="grupos-list-view">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px;">
+          <div style="font-size:22px;font-weight:700;color:var(--text);">Mis grupos</div>
+          <button class="btn-ghost" onclick="openNuevoGrupo()">+ Nuevo</button>
         </div>
-        <div class="card" id="deudas-card">
-          <div class="card-title">Mis deudas activas</div>
-          <div id="deudas-list"></div>
-          <div class="row" style="margin-top: 6px;">
-            <span style="font-size:13px; color:var(--text2);">Total adeudado</span>
-            <span style="font-weight:700; color:var(--danger);" id="total-deuda">$0</span>
-          </div>
-        </div>
+        <div id="grupos-cards" style="padding:0 16px;"></div>
+      </div>
+      <div id="grupo-detalle-view" style="display:none;">
+        <button class="back-btn" onclick="closeGrupoDetalle()">‹ Grupos</button>
+        <div id="grupo-detalle-content"></div>
       </div>
     </div>
 
-    <!-- GASTOS -->
-    <div class="section" id="sec-gastos">
-      <div class="month-bar">
-        <div class="month-label" id="gastos-mes"></div>
-        <div class="month-nav">
-          <button onclick="changeViewMonth(-1)">‹</button>
-          <button onclick="changeViewMonth(1)">›</button>
+    <!-- MOVIMIENTOS -->
+    <div class="section" id="sec-movimientos">
+      <div style="padding:16px 16px 8px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:22px;font-weight:700;">Movimientos</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="back-btn" style="padding:0;" onclick="changeViewMonth(-1)">‹</button>
+          <span style="font-size:13px;color:var(--text2);" id="movs-mes-label"></span>
+          <button class="back-btn" style="padding:0;" onclick="changeViewMonth(1)">›</button>
         </div>
       </div>
-      <div style="padding: 0 16px;">
-        <div class="card">
-          <div class="card-title">Registrar gasto</div>
-          <div class="input-group"><label>Descripción</label><input type="text" id="g-desc" placeholder="Almuerzo, SUBE, Netflix..."></div>
-          <div class="input-grid">
-            <div class="input-group"><label>Monto ($)</label><input type="number" id="g-monto" placeholder="3500" inputmode="numeric"></div>
-            <div class="input-group"><label>Categoría</label>
-              <select id="g-cat">
-                <option>Comida</option><option>Transporte</option><option>Salidas</option>
-                <option>Ropa</option><option>Suscripciones</option><option>Salud</option>
-                <option>Deuda</option><option>Otro</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn-primary" onclick="addGasto()">+ Anotar gasto</button>
-        </div>
-        <div class="card">
-          <div class="card-title">Sueldo del mes</div>
-          <div class="input-group"><input type="number" id="sueldo-input" placeholder="Ingresá tu sueldo mensual" inputmode="numeric" oninput="saveSueldo(this.value)"></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Presupuesto por categoría</div>
-          <div id="limites-list"></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Todos los gastos</div>
-          <div id="gastos-list"></div>
-          <div class="row" style="margin-top:6px;">
-            <span style="font-size:13px; color:var(--text2);">Total gastado</span>
-            <span style="font-weight:700;" id="total-gastado">$0</span>
-          </div>
-        </div>
-      </div>
+      <div id="movimientos-list" style="padding:0 16px;"></div>
     </div>
 
-    <!-- PROYECCIÓN -->
-    <div class="section" id="sec-proyeccion">
-      <div class="sec-header">Proyección</div>
-      <div style="padding: 0 16px;">
-        <div class="card">
-          <div class="card-title">Parámetros</div>
-          <div class="input-grid">
-            <div class="input-group"><label>Sueldo mensual ($)</label><input type="number" id="p-sueldo" placeholder="200000" inputmode="numeric" oninput="renderProyeccion()"></div>
-            <div class="input-group"><label>Ahorro mensual ($)</label><input type="number" id="p-ahorro" placeholder="30000" inputmode="numeric" oninput="renderProyeccion()"></div>
-            <div class="input-group"><label>Meta ($)</label><input type="number" id="p-meta" placeholder="500000" inputmode="numeric" oninput="renderProyeccion()"></div>
-            <div class="input-group"><label>Nombre de la meta</label><input type="text" id="p-meta-nombre" placeholder="Viaje / Mudanza" oninput="renderProyeccion()"></div>
+    <!-- AJUSTES -->
+    <div class="section" id="sec-ajustes">
+      <div style="font-size:22px;font-weight:700;padding:16px 16px 8px;">Ajustes</div>
+      <div style="padding:0 16px;">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div class="setting-row">
+            <div><div class="setting-label">Nombre</div><div class="setting-sub">Cómo te llama FICO</div></div>
+            <input type="text" id="aj-nombre" value="Fran" style="background:var(--bg3);border:none;border-radius:var(--radius-sm);color:var(--text);font-size:14px;padding:6px 10px;width:100px;text-align:right;outline:none;" oninput="saveNombre(this.value)">
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Sueldo mensual</div><div class="setting-sub">Para calcular el balance</div></div>
+            <input type="number" id="aj-sueldo" placeholder="200000" style="background:var(--bg3);border:none;border-radius:var(--radius-sm);color:var(--text);font-size:14px;padding:6px 10px;width:120px;text-align:right;outline:none;" inputmode="numeric" oninput="saveSueldo(this.value)">
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Tema</div><div class="setting-sub">Oscuro o claro</div></div>
+            <label class="toggle"><input type="checkbox" id="theme-toggle" onchange="toggleTheme()"><span class="toggle-slider"></span></label>
           </div>
         </div>
-        <div id="proj-resultado"></div>
-        <div class="card">
-          <div class="card-title">Ahorro acumulado (12 meses)</div>
-          <div class="chart-wrap"><canvas id="projChart" role="img" aria-label="Proyección de ahorro mes a mes en 12 meses"></canvas></div>
+        <div class="card" style="margin-top:12px;">
+          <div class="card-title">Exportar resumen</div>
+          <button class="btn-primary" onclick="exportar()" style="margin-top:0;">Compartir resumen del mes</button>
         </div>
-        <div class="card">
-          <div class="card-title">Liquidación de deudas</div>
-          <div id="deuda-proj-list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CONSEJOS -->
-    <div class="section" id="sec-consejos">
-      <div class="sec-header">Consejos</div>
-      <div style="padding: 0 16px;">
-        <div id="notif-section"></div>
-        <div id="consejos-dinamicos"></div>
-        <div class="card" style="margin-top:4px;">
-          <div class="card-title">Historial de meses</div>
-          <div id="historial-list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PLANES -->
-    <div class="section" id="sec-planes">
-      <div id="planes-list-view">
-        <div class="sec-header">Mis planes</div>
-        <div class="sec-sub">Cada objetivo tiene su propio camino. Tocá uno para ver el detalle.</div>
-        <div style="padding: 0 16px;">
-          <div id="planes-cards"></div>
-          <button class="btn-primary" onclick="showNuevoPlan()" style="margin-top:4px;">+ Nuevo plan</button>
-        </div>
-      </div>
-
-      <div id="planes-detalle-view" style="display:none;">
-        <div style="padding: 0 16px;">
-          <button onclick="closePlanDetalle()" style="background:transparent;border:none;color:var(--text2);font-size:14px;padding:14px 0 6px;cursor:pointer;display:flex;align-items:center;gap:6px;">‹ Volver a planes</button>
-          <div id="plan-detalle-content"></div>
-        </div>
-      </div>
-
-      <div id="planes-nuevo-view" style="display:none;">
-        <div style="padding:0 16px;">
-          <button onclick="closeNuevoPlan()" style="background:transparent;border:none;color:var(--text2);font-size:14px;padding:14px 0 6px;cursor:pointer;display:flex;align-items:center;gap:6px;">‹ Cancelar</button>
-          <div class="sec-header" style="padding-top:0;">Nuevo plan</div>
-          <div class="card" style="margin-top:12px;">
-            <div class="input-group"><label>Nombre del objetivo</label><input type="text" id="np-nombre" placeholder="Ej: Viaje a Brasil"></div>
-            <div class="input-group"><label>Descripción breve</label><input type="text" id="np-desc" placeholder="¿Qué querés lograr?"></div>
-            <div class="input-group"><label>Ícono (un emoji)</label><input type="text" id="np-icono" placeholder="✈ 🏠 💰 🎯" maxlength="2" style="width:80px;"></div>
-            <div class="input-group"><label>Meta en $ (opcional)</label><input type="number" id="np-meta" placeholder="500000" inputmode="numeric"></div>
-            <div class="input-group"><label>Fecha objetivo (opcional)</label><input type="month" id="np-fecha"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Pasos del plan</div>
-            <div id="np-pasos-list"></div>
-            <div style="display:flex;gap:8px;margin-top:8px;">
-              <input type="text" id="np-paso-input" placeholder="Agregar un paso..." style="flex:1;font-size:14px;">
-              <button onclick="addNuevoPaso()" style="background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;padding:0 14px;font-size:20px;cursor:pointer;">+</button>
-            </div>
-          </div>
-          <button class="btn-primary" onclick="guardarNuevoPlan()">Guardar plan</button>
-        </div>
+        <div style="text-align:center;margin-top:24px;font-size:12px;color:var(--text3);">FICO · Finanzas Franco · v2.0</div>
       </div>
     </div>
 
   </div>
 
+  <!-- FAB -->
+  <button class="fab" onclick="openFab()" id="fab" aria-label="Agregar movimiento">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="showSection('resumen')" id="btn-resumen">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/><path d="M3 12v9h18V12"/></svg></span><span>Resumen</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/><path d="M3 12v9h18V12"/></svg>
+      <span>Inicio</span>
     </button>
-    <button class="nav-item" onclick="showSection('deudas')" id="btn-deudas">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span><span>Deudas</span>
+    <button class="nav-item" onclick="showSection('grupos')" id="btn-grupos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+      <span>Grupos</span>
     </button>
-    <button class="nav-item" onclick="showSection('gastos')" id="btn-gastos">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span><span>Gastos</span>
+    <button class="nav-item" onclick="showSection('movimientos')" id="btn-movimientos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span>Movimientos</span>
     </button>
-    <button class="nav-item" onclick="showSection('planes')" id="btn-planes">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span><span>Planes</span>
-    </button>
-    <button class="nav-item" onclick="showSection('consejos')" id="btn-consejos">
-      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span><span>Consejos</span>
+    <button class="nav-item" onclick="showSection('ajustes')" id="btn-ajustes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span>Ajustes</span>
     </button>
   </nav>
+</div>
+
+<!-- MODAL AGREGAR MOVIMIENTO -->
+<div class="modal-overlay" id="modal-mov" onclick="closeModalOnBg(event,'modal-mov')">
+  <div class="modal" style="position:relative;">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-mov-title">Nuevo movimiento</div>
+    <button class="modal-close" onclick="closeModal('modal-mov')">×</button>
+    <div class="modal-body">
+      <div class="input-group">
+        <label>Descripción</label>
+        <input type="text" id="m-desc" placeholder="Ej: Afiches (bar), nafta, ropa...">
+      </div>
+      <div class="input-group">
+        <label>Monto ($)</label>
+        <input type="number" id="m-monto" placeholder="3500" inputmode="numeric">
+      </div>
+      <div class="input-group">
+        <label>Grupo principal</label>
+        <select id="m-grupo" onchange="renderSubgruposChips()">
+          <option value="">— Elegí un grupo —</option>
+        </select>
+      </div>
+      <div class="input-group" id="m-grupo2-wrap">
+        <label>Segundo grupo (opcional)</label>
+        <select id="m-grupo2">
+          <option value="">— Ninguno —</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Subgrupo / categoría</label>
+        <div class="sub-chips" id="subgrupo-chips"></div>
+      </div>
+      <div class="input-group">
+        <label>¿En cuotas?</label>
+        <select id="m-tipo" onchange="toggleCuotas()">
+          <option value="unico">Pago único (este mes)</option>
+          <option value="cuotas">En cuotas</option>
+          <option value="efectivo">Efectivo (no arrastra)</option>
+        </select>
+      </div>
+      <div id="cuotas-wrap" style="display:none;">
+        <div class="input-grid">
+          <div class="input-group"><label>Valor cuota ($)</label><input type="number" id="m-cuota-val" placeholder="4000" inputmode="numeric" oninput="calcTotal()"></div>
+          <div class="input-group"><label>Cantidad cuotas</label><input type="number" id="m-cuota-cant" placeholder="3" inputmode="numeric" oninput="calcTotal()"></div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;" id="cuota-total-label"></div>
+      </div>
+      <div class="input-group">
+        <label>Fecha</label>
+        <input type="date" id="m-fecha">
+      </div>
+      <button class="btn-primary" id="modal-mov-btn" onclick="guardarMovimiento()">Guardar</button>
+      <div style="height:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO GRUPO -->
+<div class="modal-overlay" id="modal-grupo" onclick="closeModalOnBg(event,'modal-grupo')">
+  <div class="modal" style="position:relative;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nuevo grupo</div>
+    <button class="modal-close" onclick="closeModal('modal-grupo')">×</button>
+    <div class="modal-body">
+      <div class="input-group"><label>Nombre del grupo</label><input type="text" id="g-nombre" placeholder="Visa, MP Mamá, Amex..."></div>
+      <div class="input-group">
+        <label>Color</label>
+        <div class="color-grid" id="color-grid"></div>
+      </div>
+      <button class="btn-primary" onclick="guardarGrupo()">Crear grupo</button>
+      <div style="height:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR MOVIMIENTO -->
+<div class="modal-overlay" id="modal-edit" onclick="closeModalOnBg(event,'modal-edit')">
+  <div class="modal" style="position:relative;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar movimiento</div>
+    <button class="modal-close" onclick="closeModal('modal-edit')">×</button>
+    <div class="modal-body" id="modal-edit-body"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── STATE ───────────────────────────────────────────────────────────────────
-const STORE_KEY = 'finanzas_v2';
+// ─── CONSTANTES ───────────────────────────────────────────────────────────────
+const PALETTE = ['#E24B4A','#EF9F27','#1D9E75','#378ADD','#7F77DD','#D4537E','#5DCAA5','#BA7517','#4AADE2','#A855F7'];
+
+const SUBGRUPOS = [
+  {id:'comida', label:'🍔 Comida y bebida'},
+  {id:'salidas', label:'🍻 Salidas y ocio'},
+  {id:'transporte', label:'🚇 Transporte'},
+  {id:'ropa', label:'👕 Ropa'},
+  {id:'tech', label:'📱 Tecnología'},
+  {id:'suscripciones', label:'📺 Suscripciones'},
+  {id:'salud', label:'💊 Salud'},
+  {id:'educacion', label:'📚 Educación'},
+  {id:'hogar', label:'🏠 Hogar'},
+  {id:'caprichos', label:'✨ Caprichos'},
+  {id:'regalos', label:'🎁 Regalos'},
+  {id:'viajes', label:'✈ Viajes'},
+  {id:'otros', label:'📋 Otros'},
+];
+
+const SUBGRUPO_MAP = Object.fromEntries(SUBGRUPOS.map(s => [s.id, s.label]));
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const STORE = 'fico_v2';
+function loadST() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } }
+function saveST() { try { localStorage.setItem(STORE, JSON.stringify(ST)); } catch {} }
+
+let ST = loadST();
+if (!ST.grupos) ST.grupos = [];
+if (!ST.movimientos) ST.movimientos = [];
+if (!ST.nombre) ST.nombre = 'Fran';
+if (!ST.sueldo) ST.sueldo = 0;
+if (!ST.theme) ST.theme = 'dark';
+
 let viewYear = new Date().getFullYear();
 let viewMonth = new Date().getMonth();
+let editingMovId = null;
+let selectedColor = PALETTE[0];
+let selectedSubgrupo = '';
 
-function monthKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
-function currentKey() { return monthKey(viewYear, viewMonth); }
-
-function loadState() {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
-}
-function saveState(s) {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch {}
-}
-
-let ST = loadState();
-if (!ST.deudas) ST.deudas = [];
-if (!ST.meses) ST.meses = {};
-if (!ST.theme) ST.theme = 'dark';
-if (!ST.sueldo) ST.sueldo = {};
-if (!ST.proyeccion) ST.proyeccion = {};
-
-function getMonthData(key) {
-  if (!ST.meses[key]) ST.meses[key] = { gastos: [] };
-  return ST.meses[key];
-}
-function save() { saveState(ST); }
-
-// ─── THEME ───────────────────────────────────────────────────────────────────
+// ─── THEME ────────────────────────────────────────────────────────────────────
 function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : '');
   document.getElementById('theme-btn').textContent = t === 'dark' ? '☀' : '☽';
-  document.getElementById('theme-meta').content = t === 'dark' ? '#1a1a1a' : '#f2f2f7';
+  document.getElementById('theme-meta').content = t === 'dark' ? '#111111' : '#f2f2f7';
+  const tog = document.getElementById('theme-toggle');
+  if (tog) tog.checked = t === 'light';
 }
 function toggleTheme() {
   ST.theme = ST.theme === 'dark' ? 'light' : 'dark';
-  save(); applyTheme(ST.theme);
+  saveST(); applyTheme(ST.theme);
 }
 applyTheme(ST.theme);
 
-// ─── FORMAT ──────────────────────────────────────────────────────────────────
+// ─── UTILS ────────────────────────────────────────────────────────────────────
 function fmt(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
-function monthName(y, m) {
-  return new Date(y, m, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
-}
-
-// ─── TOAST ───────────────────────────────────────────────────────────────────
+function monthKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
+function currentKey() { return monthKey(viewYear, viewMonth); }
+function monthName(y, m) { return new Date(y, m, 1).toLocaleDateString('es-AR', {month:'long', year:'numeric'}); }
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOnBg(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
 
-// ─── MONTH NAV ───────────────────────────────────────────────────────────────
-function changeViewMonth(delta) {
-  viewMonth += delta;
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+const SEC_TITLES = { resumen:'FICO', grupos:'Mis grupos', movimientos:'Movimientos', ajustes:'Ajustes' };
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('visible');
+  const btn = document.getElementById('btn-'+id);
+  if (btn) btn.classList.add('active');
+  document.getElementById('topbar-title').textContent = SEC_TITLES[id] || 'FICO';
+  const fab = document.getElementById('fab');
+  fab.style.display = id === 'ajustes' ? 'none' : 'flex';
+  if (id === 'resumen') renderResumen();
+  if (id === 'grupos') renderGrupos();
+  if (id === 'movimientos') renderMovimientos();
+  if (id === 'ajustes') renderAjustes();
+}
+
+function changeViewMonth(d) {
+  viewMonth += d;
   if (viewMonth > 11) { viewMonth = 0; viewYear++; }
   if (viewMonth < 0) { viewMonth = 11; viewYear--; }
   const sec = document.querySelector('.section.visible')?.id?.replace('sec-','');
   if (sec) showSection(sec);
 }
 
-// ─── NAV ─────────────────────────────────────────────────────────────────────
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('sec-'+id).classList.add('visible');
-  document.getElementById('btn-'+id).classList.add('active');
-  const titles = { resumen:'FICO', deudas:'Deudas', gastos:'Registrar Gastos', proyeccion:'Proyección', planes:'Mis Planes', consejos:'Consejos' };
-  document.getElementById('topbar-title').textContent = titles[id] || 'Mis Finanzas';
-  if (id==='resumen') renderResumen();
-  if (id==='deudas') renderDeudas();
-  if (id==='gastos') renderGastos();
-  if (id==='proyeccion') renderProyeccion();
-  if (id==='planes') renderPlanes();
-  if (id==='consejos') renderConsejos();
+// ─── CHARTS ───────────────────────────────────────────────────────────────────
+const charts = {};
+function makeDonut(id, labels, data, colors) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  if (charts[id]) { charts[id].destroy(); }
+  const isEmpty = !data.length || data.every(v => v === 0);
+  charts[id] = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: isEmpty ? ['Sin datos'] : labels,
+      datasets: [{ data: isEmpty ? [1] : data, backgroundColor: isEmpty ? ['#333'] : colors, borderWidth: 2, borderColor: ST.theme === 'dark' ? '#1c1c1e' : '#fff' }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{enabled:!isEmpty} }, cutout:'68%' }
+  });
 }
 
-// ─── COLORS ──────────────────────────────────────────────────────────────────
-const CAT_COLORS = {
-  Comida:'#378ADD', Transporte:'#1D9E75', Salidas:'#D4537E',
-  Ropa:'#7F77DD', Suscripciones:'#BA7517', Salud:'#5DCAA5',
-  Deuda:'#E24B4A', Otro:'#888780'
-};
+function renderCharts() {
+  const key = currentKey();
+  const movsMes = ST.movimientos.filter(m => m.mes === key);
 
-// ─── DEUDAS ──────────────────────────────────────────────────────────────────
-function addDeuda() {
-  const n = document.getElementById('d-nombre').value.trim();
-  const s = parseFloat(document.getElementById('d-saldo').value);
-  const m = parseFloat(document.getElementById('d-minimo').value);
-  const t = parseFloat(document.getElementById('d-tasa').value);
-  const cat = document.getElementById('d-cat').value;
-  if (!n || isNaN(s) || isNaN(m) || s<=0 || m<=0) { toast('Completá nombre, saldo y mínimo'); return; }
-  ST.deudas.push({ id: Date.now(), nombre:n, saldo:s, minimo:m, tasa:isNaN(t)?0:t, cat });
-  save();
-  ['d-nombre','d-saldo','d-minimo','d-tasa'].forEach(i => document.getElementById(i).value='');
-  toast('Deuda agregada');
-  renderDeudas();
-}
-function removeDeuda(id) {
-  ST.deudas = ST.deudas.filter(d=>d.id!==id);
-  save(); renderDeudas(); toast('Deuda eliminada');
-}
-function mesesParaLiquidar(d) {
-  if (d.tasa <= 0) return Math.ceil(d.saldo / Math.max(d.minimo, 1));
-  const r = d.tasa / 100;
-  const interes = d.saldo * r;
-  if (d.minimo <= interes) return Infinity;
-  return Math.ceil(Math.log(d.minimo / (d.minimo - interes)) / Math.log(1 + r));
-}
-const CAT_ICONS = {
-  'Tarjetas': '💳',
-  'Préstamos': '🏦',
-  'Personas': '🤝',
-  'Billeteras': '📱',
-  'Otro': '📋'
-};
+  // Chart 1: Gasto del mes por subgrupo
+  const bySubgrupo = {};
+  movsMes.forEach(m => {
+    const sub = m.subgrupo || 'otros';
+    bySubgrupo[sub] = (bySubgrupo[sub] || 0) + m.monto;
+  });
+  const sgLabels = Object.keys(bySubgrupo).map(k => SUBGRUPO_MAP[k]?.replace(/^.+ /, '') || k);
+  const sgData = Object.values(bySubgrupo);
+  const sgColors = Object.keys(bySubgrupo).map((_, i) => PALETTE[i % PALETTE.length]);
+  const totalGasto = sgData.reduce((a, b) => a + b, 0);
+  document.getElementById('cv-gasto').textContent = fmt(totalGasto);
+  makeDonut('chart-gasto', sgLabels, sgData, sgColors);
+  document.getElementById('legend-gasto').innerHTML = Object.keys(bySubgrupo).map((k, i) =>
+    `<span><span class="legend-dot" style="background:${sgColors[i]};"></span>${sgLabels[i]}</span>`).join('');
 
-function addDeudaCategory(cat) {
-  document.getElementById('d-cat').value = cat;
-  toast('Categoría: ' + cat);
-}
+  // Chart 2: Por grupo
+  const byGrupo = {};
+  movsMes.forEach(m => {
+    if (m.grupoId) byGrupo[m.grupoId] = (byGrupo[m.grupoId] || 0) + m.monto;
+    if (m.grupoId2) byGrupo[m.grupoId2] = (byGrupo[m.grupoId2] || 0) + m.monto;
+  });
+  const gLabels = Object.keys(byGrupo).map(id => ST.grupos.find(g => g.id == id)?.nombre || id);
+  const gData = Object.values(byGrupo);
+  const gColors = Object.keys(byGrupo).map(id => ST.grupos.find(g => g.id == id)?.color || '#888');
+  const totalGrupo = gData.reduce((a, b) => a + b, 0);
+  document.getElementById('cv-grupo').textContent = fmt(totalGrupo);
+  makeDonut('chart-grupo', gLabels, gData, gColors);
+  document.getElementById('legend-grupo').innerHTML = gLabels.map((l, i) =>
+    `<span><span class="legend-dot" style="background:${gColors[i]};"></span>${l}</span>`).join('');
 
-function renderDeudas() {
-  const total = ST.deudas.reduce((a,d)=>a+d.saldo,0);
-  const el = document.getElementById('deudas-list');
-
-  if (!ST.deudas.length) {
-    el.innerHTML = '<p style="font-size:13px;color:var(--text3);padding:8px 0;">Aún no cargaste deudas.</p>';
+  // Chart 3: Balance
+  const sueldo = ST.sueldo || 0;
+  const deuda = totalGasto;
+  const libre = Math.max(sueldo - deuda, 0);
+  const endeudado = Math.max(deuda - sueldo, 0);
+  document.getElementById('cv-balance').textContent = sueldo > 0 ? fmt(endeudado > 0 ? -endeudado : libre) : '—';
+  document.getElementById('cv-balance').style.color = endeudado > 0 ? 'var(--danger)' : 'var(--accent)';
+  document.getElementById('cv-balance-label').textContent = endeudado > 0 ? 'en rojo' : 'disponible';
+  if (sueldo > 0) {
+    makeDonut('chart-balance', ['Gastado','Libre'], [deuda, libre], ['#E24B4A','#1D9E75']);
+    document.getElementById('legend-balance').innerHTML =
+      `<span><span class="legend-dot" style="background:#E24B4A;"></span>Gastado</span>
+       <span><span class="legend-dot" style="background:#1D9E75;"></span>Disponible</span>`;
+    if (endeudado > 0 && totalGasto > 0) {
+      const meses = Math.ceil(endeudado / (totalGasto * 0.1));
+      document.getElementById('balance-revert').textContent = `Reduciendo un 10% tu gasto, revertís en ~${meses} mes${meses!==1?'es':''}`;
+    } else { document.getElementById('balance-revert').textContent = ''; }
   } else {
-    const CATS = ['Tarjetas','Préstamos','Personas','Billeteras','Otro'];
-    let html = '';
-    CATS.forEach(cat => {
-      const deudas = ST.deudas.filter(d => (d.cat || 'Tarjetas') === cat);
-      if (!deudas.length) return;
-      const subtotal = deudas.reduce((a,d)=>a+d.saldo,0);
-      html += `<div style="margin-bottom:6px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 4px;">
-          <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;">${CAT_ICONS[cat]||'📋'} ${cat}</span>
-          <span style="font-size:11px;color:var(--text3);">${fmt(subtotal)}</span>
-        </div>`;
-      deudas.forEach(d => {
-        const meses = mesesParaLiquidar(d);
-        const valido = isFinite(meses) && meses < 600;
-        const fecha = valido ? (() => { const f=new Date(); f.setMonth(f.getMonth()+meses); return f.toLocaleDateString('es-AR',{month:'short',year:'numeric'}); })() : '?';
-        const badge = meses < 6 ? 'badge-ok' : meses < 18 ? 'badge-warn' : 'badge-danger';
-        html += `<div class="row" style="padding-left:8px;">
-          <div style="flex:1;min-width:0;">
-            <div class="row-label">${d.nombre}</div>
-            <div class="row-sub">Mín. ${fmt(d.minimo)}/mes · ${valido?meses+'m':'revisá datos'} · <span class="badge ${badge}">${fecha}</span></div>
-          </div>
-          <div class="row-right" style="display:flex;align-items:center;gap:8px;">
-            <div style="font-size:14px;font-weight:600;color:var(--danger);">${fmt(d.saldo)}</div>
-            <button class="btn-danger" onclick="removeDeuda(${d.id})">×</button>
-          </div>
-        </div>`;
-      });
-      html += `</div><div style="height:0.5px;background:var(--border);margin:4px 0 10px;"></div>`;
-    });
-    el.innerHTML = html;
+    makeDonut('chart-balance', [], [], []);
+    document.getElementById('balance-revert').textContent = 'Ingresá tu sueldo en Ajustes para ver el balance';
   }
-  document.getElementById('total-deuda').textContent = fmt(total);
 }
 
-// ─── GASTOS ──────────────────────────────────────────────────────────────────
-function saveSueldo(v) {
-  ST.sueldo[currentKey()] = parseFloat(v) || 0;
-  save();
-}
-function addGasto() {
-  const d = document.getElementById('g-desc').value.trim();
-  const m = parseFloat(document.getElementById('g-monto').value);
-  const c = document.getElementById('g-cat').value;
-  if (!d || isNaN(m) || m<=0) { toast('Completá descripción y monto'); return; }
-  const key = currentKey();
-  const md = getMonthData(key);
-  md.gastos.push({ id:Date.now(), desc:d, monto:m, cat:c, fecha:new Date().toLocaleDateString('es-AR') });
-  save();
-  document.getElementById('g-desc').value='';
-  document.getElementById('g-monto').value='';
-  toast('Gasto anotado ✓');
-  renderGastos(); renderResumen();
-}
-function removeGasto(id) {
-  const key = currentKey();
-  const md = getMonthData(key);
-  md.gastos = md.gastos.filter(g=>g.id!==id);
-  save(); renderGastos(); renderResumen(); toast('Eliminado');
-}
-function renderGastos() {
-  const key = currentKey();
-  const label = monthName(viewYear, viewMonth);
-  document.getElementById('gastos-mes').textContent = label;
-  const md = getMonthData(key);
-  const sueldo = ST.sueldo[key] || 0;
-  const totalMin = ST.deudas.reduce((a,d)=>a+d.minimo,0);
-  const disponible = sueldo > 0 ? Math.max(sueldo - totalMin, sueldo * 0.5) : 0;
-  const totalG = md.gastos.reduce((a,g)=>a+g.monto,0);
-
-  const el = document.getElementById('sueldo-input');
-  if (el && sueldo > 0 && !el.value) el.value = sueldo;
-
-  const limits = { Comida:0.25, Transporte:0.10, Salidas:0.15, Ropa:0.08, Suscripciones:0.05, Salud:0.05, Otro:0.07 };
-  const limEl = document.getElementById('limites-list');
-  if (disponible > 0) {
-    const cats = Object.keys(limits);
-    limEl.innerHTML = cats.map(cat => {
-      const lim = disponible * limits[cat];
-      const gastado = md.gastos.filter(g=>g.cat===cat).reduce((a,g)=>a+g.monto,0);
-      const pct = Math.min(Math.round((gastado/lim)*100),100);
-      const color = pct > 90 ? '#E24B4A' : pct > 70 ? '#EF9F27' : '#1D9E75';
-      return `<div style="margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);">
-          <span>${cat}</span><span>${fmt(gastado)} / ${fmt(lim)}</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color};"></div></div>
-      </div>`;
-    }).join('');
-  } else {
-    limEl.innerHTML = '<p style="font-size:12px;color:var(--text3);">Ingresá tu sueldo para ver los límites.</p>';
-  }
-
-  const glEl = document.getElementById('gastos-list');
-  const inv = [...md.gastos].reverse();
-  glEl.innerHTML = inv.length ? inv.map(g =>
-    `<div class="row">
-      <div style="flex:1;min-width:0;">
-        <div class="row-label" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${g.desc}</div>
-        <div class="row-sub">${g.fecha} · ${g.cat}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-        <span style="font-size:13px;font-weight:600;">${fmt(g.monto)}</span>
-        <button class="btn-danger" onclick="removeGasto(${g.id})">×</button>
-      </div>
-    </div>`).join('') :
-    '<p style="font-size:13px;color:var(--text3);padding:8px 0;">Aún no registraste gastos este mes.</p>';
-
-  document.getElementById('total-gastado').textContent = fmt(totalG);
-}
+// Chart dots
+document.getElementById('charts-container').addEventListener('scroll', function() {
+  const idx = Math.round(this.scrollLeft / this.offsetWidth);
+  document.querySelectorAll('.chart-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+});
 
 // ─── RESUMEN ─────────────────────────────────────────────────────────────────
-let pieChart = null;
 function renderResumen() {
+  const now = new Date();
+  viewYear = now.getFullYear(); viewMonth = now.getMonth();
   const key = currentKey();
-  const label = monthName(viewYear, viewMonth);
-  document.getElementById('resumen-mes').textContent = label;
-  const md = getMonthData(key);
-  const sueldo = ST.sueldo[key] || 0;
-  const totalDeuda = ST.deudas.reduce((a,d)=>a+d.saldo,0);
-  const totalMin = ST.deudas.reduce((a,d)=>a+d.minimo,0);
-  const totalG = md.gastos.reduce((a,g)=>a+g.monto,0);
-  const libre = sueldo > 0 ? sueldo - totalMin - totalG : 0;
+  const movsMes = ST.movimientos.filter(m => m.mes === key);
+  const totalGasto = movsMes.reduce((a, m) => a + m.monto, 0);
+  const sueldo = ST.sueldo || 0;
+  const libre = sueldo - totalGasto;
 
-  document.getElementById('resumen-metrics').innerHTML = `
-    <div class="metric"><div class="metric-label">Sueldo</div><div class="metric-val">${sueldo>0?fmt(sueldo):'—'}</div></div>
-    <div class="metric"><div class="metric-label">Total deudas</div><div class="metric-val danger">${fmt(totalDeuda)}</div></div>
-    <div class="metric"><div class="metric-label">Mínimos / mes</div><div class="metric-val warn">${fmt(totalMin)}</div></div>
-    <div class="metric"><div class="metric-label">Libre este mes</div><div class="metric-val ${libre<0?'danger':'ok'}">${sueldo>0?fmt(libre):'—'}</div></div>`;
+  document.getElementById('hello-name').textContent = `Hola, ${ST.nombre} 👋`;
+  document.getElementById('hello-sub').textContent = monthName(viewYear, viewMonth);
 
-  const catTotals = {};
-  md.gastos.forEach(g => { catTotals[g.cat] = (catTotals[g.cat]||0) + g.monto; });
-  const labels = Object.keys(catTotals);
-  const data = labels.map(l=>catTotals[l]);
-  const colors = labels.map(l=>CAT_COLORS[l]||'#888780');
+  document.getElementById('metric-row').innerHTML = `
+    <div class="metric"><div class="metric-label">Sueldo</div><div class="metric-val">${sueldo > 0 ? fmt(sueldo) : '—'}</div></div>
+    <div class="metric"><div class="metric-label">Gastado</div><div class="metric-val red">${fmt(totalGasto)}</div></div>
+    <div class="metric"><div class="metric-label">Libre</div><div class="metric-val ${libre >= 0 ? 'green' : 'red'}">${sueldo > 0 ? fmt(libre) : '—'}</div></div>`;
 
-  document.getElementById('pie-legend').innerHTML = labels.map((l,i) => {
-    const pct = totalG>0?Math.round((catTotals[l]/totalG)*100):0;
-    return `<span><span class="pie-dot" style="background:${colors[i]};"></span>${l} ${pct}%</span>`;
+  renderCharts();
+
+  const ultimos = [...ST.movimientos].reverse().slice(0, 5);
+  document.getElementById('ultimos-movs').innerHTML = ultimos.length ?
+    ultimos.map(m => {
+      const g = ST.grupos.find(x => x.id === m.grupoId);
+      const sub = SUBGRUPO_MAP[m.subgrupo] || '📋 Otros';
+      return `<div class="row">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${g?.color||'#888'};flex-shrink:0;"></div>
+          <div style="min-width:0;">
+            <div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.desc}</div>
+            <div style="font-size:11px;color:var(--text3);">${g?.nombre||'—'} · ${sub.replace(/^.+ /,'')}</div>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:600;flex-shrink:0;">${fmt(m.monto)}</div>
+      </div>`;
+    }).join('') :
+    '<div class="empty-state"><div class="empty-icon">📭</div>Aún no hay movimientos.<br>Tocá + para agregar uno.</div>';
+}
+
+// ─── GRUPOS ───────────────────────────────────────────────────────────────────
+function renderGrupos() {
+  document.getElementById('grupos-list-view').style.display = 'block';
+  document.getElementById('grupo-detalle-view').style.display = 'none';
+  const el = document.getElementById('grupos-cards');
+  if (!ST.grupos.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div>Aún no creaste grupos.<br>Tocá "Nuevo" para empezar.</div>';
+    return;
+  }
+  el.innerHTML = ST.grupos.map(g => {
+    const movs = ST.movimientos.filter(m => m.grupoId === g.id || m.grupoId2 === g.id);
+    const total = movs.reduce((a, m) => a + m.monto, 0);
+    const movsKey = movs.filter(m => m.mes === currentKey());
+    const totalMes = movsKey.reduce((a, m) => a + m.monto, 0);
+    return `<div onclick="openGrupoDetalle(${g.id})" style="background:var(--bg2);border:0.5px solid var(--border);border-left:3px solid ${g.color};border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px;">
+      <div style="width:42px;height:42px;border-radius:12px;background:${g.color}22;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:${g.color};flex-shrink:0;">${g.nombre.charAt(0)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:15px;font-weight:600;color:var(--text);">${g.nombre}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">${movs.length} movimiento${movs.length!==1?'s':''} · Este mes: ${fmt(totalMes)}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:15px;font-weight:700;color:var(--danger);">${fmt(total)}</div>
+        <div style="font-size:10px;color:var(--text3);">total</div>
+      </div>
+      <span style="color:var(--text3);font-size:18px;">›</span>
+    </div>`;
   }).join('');
+}
 
-  if (pieChart) { pieChart.destroy(); pieChart=null; }
-  if (labels.length) {
-    pieChart = new Chart(document.getElementById('pieChart'), {
-      type:'doughnut',
-      data:{ labels, datasets:[{ data, backgroundColor:colors, borderWidth:2, borderColor: ST.theme==='dark'?'#1c1c1e':'#fff' }] },
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, cutout:'60%' }
+function openGrupoDetalle(id) {
+  const g = ST.grupos.find(x => x.id === id);
+  if (!g) return;
+  document.getElementById('grupos-list-view').style.display = 'none';
+  document.getElementById('grupo-detalle-view').style.display = 'block';
+  document.getElementById('topbar-title').textContent = g.nombre;
+  const movs = ST.movimientos.filter(m => m.grupoId === id || m.grupoId2 === id).reverse();
+  const total = movs.reduce((a, m) => a + m.monto, 0);
+
+  // Group by month
+  const byMes = {};
+  movs.forEach(m => { if (!byMes[m.mes]) byMes[m.mes] = []; byMes[m.mes].push(m); });
+
+  let html = `<div style="padding:0 16px 16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:${g.color}22;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:${g.color};">${g.nombre.charAt(0)}</div>
+      <div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);">${g.nombre}</div>
+        <div style="font-size:13px;color:var(--text3);">Total: <span style="color:var(--danger);font-weight:600;">${fmt(total)}</span></div>
+      </div>
+    </div>`;
+
+  if (!movs.length) {
+    html += '<div class="empty-state"><div class="empty-icon">📭</div>Sin movimientos aún.</div>';
+  } else {
+    Object.keys(byMes).sort().reverse().forEach(mesKey => {
+      const [y, m] = mesKey.split('-');
+      const label = new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('es-AR', {month:'long', year:'numeric'});
+      const totalMes = byMes[mesKey].reduce((a, x) => a + x.monto, 0);
+      html += `<div style="margin-bottom:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 4px;">
+          <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;">${label}</span>
+          <span style="font-size:12px;color:var(--text3);">${fmt(totalMes)}</span>
+        </div>`;
+      byMes[mesKey].forEach(mov => {
+        const sub = SUBGRUPO_MAP[mov.subgrupo] || '📋 Otros';
+        const cuotaLabel = mov.tipo === 'cuotas' ? `· Cuota ${mov.cuotaActual||1}/${mov.cuotaTotal}` : '';
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${mov.desc}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;">${sub.replace(/^.+ /,'')} ${cuotaLabel}</div>
+          </div>
+          <div style="font-size:13px;font-weight:600;flex-shrink:0;">${fmt(mov.monto)}</div>
+          <button onclick="editMovimiento(${mov.id})" style="background:transparent;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px 6px;">✎</button>
+          <button onclick="deleteMovimiento(${mov.id},${g.id})" class="btn-danger-sm">×</button>
+        </div>`;
+      });
+      html += '</div>';
     });
   }
 
-  const ult = [...md.gastos].reverse().slice(0,6);
-  document.getElementById('ultimos-gastos').innerHTML = ult.length ?
-    ult.map(g=>`<div class="row">
-      <div style="flex:1;min-width:0;"><div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${g.desc}</div><div class="row-sub">${g.cat}</div></div>
-      <span style="font-size:13px;font-weight:600;flex-shrink:0;">${fmt(g.monto)}</span>
-    </div>`).join('') :
-    '<p style="font-size:13px;color:var(--text3);">Registrá gastos para verlos aquí.</p>';
+  html += `<button onclick="confirmDeleteGrupo(${g.id})" style="width:100%;margin-top:20px;padding:12px;background:rgba(226,75,74,0.1);border:0.5px solid rgba(226,75,74,0.3);border-radius:var(--radius-sm);color:var(--danger);font-size:14px;cursor:pointer;">Eliminar grupo</button>`;
+  html += '</div>';
+  document.getElementById('grupo-detalle-content').innerHTML = html;
 }
 
-// ─── PROYECCIÓN ──────────────────────────────────────────────────────────────
-let projChart = null;
-function renderProyeccion() {
-  const sueldo = parseFloat(document.getElementById('p-sueldo').value)||0;
-  const ahorro = parseFloat(document.getElementById('p-ahorro').value)||0;
-  const meta = parseFloat(document.getElementById('p-meta').value)||0;
-  const metaNombre = document.getElementById('p-meta-nombre').value||'Tu meta';
+function closeGrupoDetalle() {
+  document.getElementById('topbar-title').textContent = 'Mis grupos';
+  renderGrupos();
+}
 
-  ST.proyeccion = { sueldo, ahorro, meta, metaNombre };
-  save();
+function confirmDeleteGrupo(id) {
+  const g = ST.grupos.find(x => x.id === id);
+  if (!g) return;
+  if (!confirm(`¿Eliminar el grupo "${g.nombre}"? Se borrarán todos sus movimientos.`)) return;
+  ST.grupos = ST.grupos.filter(x => x.id !== id);
+  ST.movimientos = ST.movimientos.filter(m => m.grupoId !== id && m.grupoId2 !== id);
+  saveST(); toast('Grupo eliminado'); closeGrupoDetalle();
+}
 
-  const dpEl = document.getElementById('deuda-proj-list');
-  dpEl.innerHTML = ST.deudas.length ? ST.deudas.map(d => {
-    const meses = mesesParaLiquidar(d);
-    const valido = isFinite(meses)&&meses<600;
-    const fecha = valido ? (() => { const f=new Date(); f.setMonth(f.getMonth()+meses); return f.toLocaleDateString('es-AR',{month:'long',year:'numeric'}); })() : 'revisá datos';
-    const cls = meses<6?'badge-ok':meses<18?'badge-warn':'badge-danger';
-    return `<div class="row">
-      <div><div class="row-label">${d.nombre}</div><div class="row-sub">${valido?meses+' meses':'—'}</div></div>
-      <span class="badge ${cls}">${fecha}</span>
-    </div>`;
-  }).join('') : '<p style="font-size:13px;color:var(--text3);">Cargá deudas para ver la proyección.</p>';
+// ─── NUEVO GRUPO ──────────────────────────────────────────────────────────────
+function openNuevoGrupo() {
+  selectedColor = PALETTE[0];
+  document.getElementById('g-nombre').value = '';
+  renderColorGrid();
+  openModal('modal-grupo');
+}
 
-  const resEl = document.getElementById('proj-resultado');
-  if (meta > 0 && ahorro > 0) {
-    const mesesMeta = Math.ceil(meta/ahorro);
-    const pct = Math.min(Math.round((ahorro/meta)*100),100);
-    resEl.innerHTML = `<div class="card">
-      <div class="card-title">${metaNombre}</div>
-      <div style="font-size:20px;font-weight:700;margin-bottom:4px;">${fmt(meta)}</div>
-      <div style="font-size:13px;color:var(--text2);">Ahorrando ${fmt(ahorro)}/mes → llegás en <strong style="color:var(--accent);">${mesesMeta} meses</strong></div>
-      <div class="progress-bar" style="margin-top:10px;"><div class="progress-fill" style="width:${pct}%;background:var(--accent);"></div></div>
-    </div>`;
-  } else { resEl.innerHTML=''; }
+function renderColorGrid() {
+  document.getElementById('color-grid').innerHTML = PALETTE.map((c, i) =>
+    `<div class="color-opt ${c === selectedColor ? 'selected' : ''}" style="background:${c};" onclick="selectColor('${c}')"></div>`).join('');
+}
 
-  const meses12 = 12;
-  const now = new Date();
-  const chartLabels = Array.from({length:meses12},(_,i)=>{
-    const f=new Date(now.getFullYear(),now.getMonth()+i,1);
-    return f.toLocaleDateString('es-AR',{month:'short'});
+function selectColor(c) { selectedColor = c; renderColorGrid(); }
+
+function guardarGrupo() {
+  const nombre = document.getElementById('g-nombre').value.trim();
+  if (!nombre) { toast('Poné un nombre al grupo'); return; }
+  ST.grupos.push({ id: Date.now(), nombre, color: selectedColor });
+  saveST(); toast('Grupo creado ✓'); closeModal('modal-grupo'); renderGrupos();
+}
+
+// ─── MOVIMIENTOS ──────────────────────────────────────────────────────────────
+function renderMovimientos() {
+  const key = currentKey();
+  document.getElementById('movs-mes-label').textContent = monthName(viewYear, viewMonth);
+  const movsMes = ST.movimientos.filter(m => m.mes === key).reverse();
+  const el = document.getElementById('movimientos-list');
+
+  if (!movsMes.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div>Sin movimientos este mes.</div>';
+    return;
+  }
+
+  // Group by grupo
+  const byGrupo = {};
+  movsMes.forEach(m => {
+    const gid = m.grupoId || 'sin-grupo';
+    if (!byGrupo[gid]) byGrupo[gid] = [];
+    byGrupo[gid].push(m);
   });
-  const chartData = Array.from({length:meses12},(_,i)=>Math.round(ahorro*(i+1)));
 
-  if (projChart) { projChart.destroy(); projChart=null; }
-  const datasets = [{
-    label:'Ahorro',data:chartData,backgroundColor:'#1D9E75',borderWidth:0,borderRadius:4
-  }];
-  if (meta>0) datasets.push({
-    type:'line',label:metaNombre,data:Array(meses12).fill(meta),
-    borderColor:'#7F77DD',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false
+  let html = '';
+  Object.keys(byGrupo).forEach(gid => {
+    const g = ST.grupos.find(x => x.id == gid);
+    const movs = byGrupo[gid];
+    const total = movs.reduce((a, m) => a + m.monto, 0);
+    html += `<div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0 6px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:${g?.color||'#888'};"></div>
+        <span style="font-size:13px;font-weight:700;color:var(--text2);">${g?.nombre||'Sin grupo'}</span>
+        <span style="font-size:12px;color:var(--text3);margin-left:auto;">${fmt(total)}</span>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);overflow:hidden;">`;
+    movs.forEach(m => {
+      const sub = SUBGRUPO_MAP[m.subgrupo] || '📋 Otros';
+      const cuotaLabel = m.tipo === 'cuotas' ? ` · Cuota ${m.cuotaActual||1}/${m.cuotaTotal}` : '';
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:0.5px solid var(--border);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.desc}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px;">${sub.replace(/^.+ /,'')}${cuotaLabel} · ${m.fecha||''}</div>
+        </div>
+        <div style="font-size:13px;font-weight:600;flex-shrink:0;">${fmt(m.monto)}</div>
+        <button onclick="editMovimiento(${m.id})" style="background:transparent;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px 6px;">✎</button>
+        <button onclick="deleteMovimiento(${m.id},null)" class="btn-danger-sm">×</button>
+      </div>`;
+    });
+    html += '</div></div>';
   });
-  projChart = new Chart(document.getElementById('projChart'),{
-    type:'bar',
-    data:{ labels:chartLabels, datasets },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false} },
-      scales:{
-        y:{ ticks:{ callback:v=>'$'+Math.round(v/1000)+'k', color:'#a0a0a0' }, grid:{color:'rgba(255,255,255,0.05)'} },
-        x:{ ticks:{ autoSkip:false, color:'#a0a0a0', maxRotation:0 }, grid:{display:false} }
+  el.innerHTML = html;
+}
+
+// ─── FAB / AGREGAR MOVIMIENTO ─────────────────────────────────────────────────
+function openFab() {
+  editingMovId = null;
+  selectedSubgrupo = '';
+  document.getElementById('m-desc').value = '';
+  document.getElementById('m-monto').value = '';
+  document.getElementById('m-tipo').value = 'unico';
+  document.getElementById('m-cuota-val').value = '';
+  document.getElementById('m-cuota-cant').value = '';
+  document.getElementById('cuota-total-label').textContent = '';
+  document.getElementById('cuotas-wrap').style.display = 'none';
+  document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('modal-mov-title').textContent = 'Nuevo movimiento';
+  document.getElementById('modal-mov-btn').textContent = 'Guardar';
+  populateGrupoSelects();
+  renderSubgruposChips();
+  openModal('modal-mov');
+}
+
+function populateGrupoSelects() {
+  const opts = ST.grupos.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
+  document.getElementById('m-grupo').innerHTML = '<option value="">— Elegí un grupo —</option>' + opts;
+  document.getElementById('m-grupo2').innerHTML = '<option value="">— Ninguno —</option>' + opts;
+}
+
+function renderSubgruposChips() {
+  document.getElementById('subgrupo-chips').innerHTML = SUBGRUPOS.map(s =>
+    `<div class="sub-chip ${s.id === selectedSubgrupo ? 'selected' : ''}" onclick="selectSub('${s.id}')">${s.label}</div>`).join('');
+}
+
+function selectSub(id) { selectedSubgrupo = id; renderSubgruposChips(); }
+
+function toggleCuotas() {
+  const tipo = document.getElementById('m-tipo').value;
+  document.getElementById('cuotas-wrap').style.display = tipo === 'cuotas' ? 'block' : 'none';
+}
+
+function calcTotal() {
+  const val = parseFloat(document.getElementById('m-cuota-val').value) || 0;
+  const cant = parseInt(document.getElementById('m-cuota-cant').value) || 0;
+  if (val && cant) document.getElementById('cuota-total-label').textContent = `Total: ${fmt(val * cant)} en ${cant} cuotas`;
+  else document.getElementById('cuota-total-label').textContent = '';
+}
+
+function guardarMovimiento() {
+  const desc = document.getElementById('m-desc').value.trim();
+  const grupoId = parseInt(document.getElementById('m-grupo').value) || null;
+  const grupoId2 = parseInt(document.getElementById('m-grupo2').value) || null;
+  const tipo = document.getElementById('m-tipo').value;
+  const fecha = document.getElementById('m-fecha').value;
+  if (!desc) { toast('Poné una descripción'); return; }
+  if (!grupoId) { toast('Elegí un grupo'); return; }
+
+  let monto, cuotaTotal, cuotaVal;
+  if (tipo === 'cuotas') {
+    cuotaVal = parseFloat(document.getElementById('m-cuota-val').value);
+    cuotaTotal = parseInt(document.getElementById('m-cuota-cant').value);
+    if (!cuotaVal || !cuotaTotal) { toast('Completá valor y cantidad de cuotas'); return; }
+    monto = cuotaVal;
+  } else {
+    monto = parseFloat(document.getElementById('m-monto').value);
+    if (!monto || monto <= 0) { toast('Ingresá un monto válido'); return; }
+  }
+
+  const fechaDate = fecha ? new Date(fecha + 'T00:00:00') : new Date();
+  const mes = monthKey(fechaDate.getFullYear(), fechaDate.getMonth());
+
+  if (editingMovId) {
+    const idx = ST.movimientos.findIndex(m => m.id === editingMovId);
+    if (idx >= 0) {
+      ST.movimientos[idx] = { ...ST.movimientos[idx], desc, monto, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes };
+    }
+    toast('Movimiento actualizado ✓');
+    closeModal('modal-edit');
+  } else {
+    const mov = { id: Date.now(), desc, monto, grupoId, grupoId2, subgrupo: selectedSubgrupo, tipo, fecha, mes };
+    ST.movimientos.push(mov);
+
+    // Generar cuotas futuras automáticamente
+    if (tipo === 'cuotas' && cuotaTotal > 1) {
+      mov.cuotaActual = 1;
+      mov.cuotaTotal = cuotaTotal;
+      for (let i = 1; i < cuotaTotal; i++) {
+        const fd = new Date(fechaDate.getFullYear(), fechaDate.getMonth() + i, 1);
+        const futureMes = monthKey(fd.getFullYear(), fd.getMonth());
+        ST.movimientos.push({
+          id: Date.now() + i, desc: `${desc} (cuota ${i+1}/${cuotaTotal})`,
+          monto: cuotaVal, grupoId, grupoId2, subgrupo: selectedSubgrupo,
+          tipo: 'cuotas', fecha: fd.toISOString().split('T')[0], mes: futureMes,
+          cuotaActual: i+1, cuotaTotal, esAutogenerada: true
+        });
       }
     }
-  });
+    toast('Movimiento agregado ✓');
+    closeModal('modal-mov');
+  }
+
+  saveST();
+  const sec = document.querySelector('.section.visible')?.id?.replace('sec-','');
+  if (sec) showSection(sec);
 }
 
-// ─── CONSEJOS ────────────────────────────────────────────────────────────────
-function renderConsejos() {
+function editMovimiento(id) {
+  const m = ST.movimientos.find(x => x.id === id);
+  if (!m) return;
+  editingMovId = id;
+  selectedSubgrupo = m.subgrupo || '';
+
+  document.getElementById('modal-mov-title').textContent = 'Editar movimiento';
+  document.getElementById('modal-mov-btn').textContent = 'Actualizar';
+  document.getElementById('m-desc').value = m.desc;
+  document.getElementById('m-monto').value = m.monto;
+  document.getElementById('m-tipo').value = m.tipo || 'unico';
+  document.getElementById('m-fecha').value = m.fecha || '';
+  toggleCuotas();
+  populateGrupoSelects();
+  document.getElementById('m-grupo').value = m.grupoId || '';
+  document.getElementById('m-grupo2').value = m.grupoId2 || '';
+  renderSubgruposChips();
+  openModal('modal-mov');
+}
+
+function deleteMovimiento(id, grupoId) {
+  ST.movimientos = ST.movimientos.filter(m => m.id !== id);
+  saveST(); toast('Movimiento eliminado');
+  const sec = document.querySelector('.section.visible')?.id?.replace('sec-','');
+  if (sec === 'grupos' && grupoId) openGrupoDetalle(grupoId);
+  else if (sec) showSection(sec);
+}
+
+// ─── AJUSTES ─────────────────────────────────────────────────────────────────
+function renderAjustes() {
+  const inp = document.getElementById('aj-nombre');
+  if (inp) inp.value = ST.nombre;
+  const sueldo = document.getElementById('aj-sueldo');
+  if (sueldo && ST.sueldo) sueldo.value = ST.sueldo;
+  const tog = document.getElementById('theme-toggle');
+  if (tog) tog.checked = ST.theme === 'light';
+}
+function saveNombre(v) { ST.nombre = v || 'Fran'; saveST(); }
+function saveSueldo(v) { ST.sueldo = parseFloat(v) || 0; saveST(); }
+
+function exportar() {
   const key = currentKey();
-  const md = getMonthData(key);
-  const sueldo = ST.sueldo[key]||0;
-  const totalDeuda = ST.deudas.reduce((a,d)=>a+d.saldo,0);
-  const totalMin = ST.deudas.reduce((a,d)=>a+d.minimo,0);
-  const totalG = md.gastos.reduce((a,g)=>a+g.monto,0);
-
-  let tips = [];
-  if (!ST.deudas.length) {
-    tips.push({cls:'',icon:'⊠',text:'Cargá tus tarjetas en la sección Deudas. Es el primer paso para entender tu situación real.'});
-  } else {
-    const masChica = [...ST.deudas].sort((a,b)=>a.saldo-b.saldo)[0];
-    tips.push({cls:'',icon:'◎',text:`Bola de nieve: atacá primero "${masChica.nombre}" (${fmt(masChica.saldo)}). Es la más chica. Liquidarla te va a dar impulso.`});
-    if (sueldo>0 && totalMin/sueldo>0.4) tips.push({cls:'danger-tip',icon:'⚠',text:`Tus mínimos son el ${Math.round(totalMin/sueldo*100)}% de tu sueldo. Crítico. Prioridad absoluta: no agregar deuda nueva.`});
-  }
-  if (!md.gastos.length) {
-    tips.push({cls:'warn-tip',icon:'✎',text:'Registrá los gastos de hoy. Con una semana de datos ya puedo darte consejos específicos.'});
-  } else {
-    const porCat={};
-    md.gastos.forEach(g=>{porCat[g.cat]=(porCat[g.cat]||0)+g.monto;});
-    const mayor=Object.entries(porCat).sort((a,b)=>b[1]-a[1])[0];
-    if (mayor) tips.push({cls:'warn-tip',icon:'📊',text:`Tu mayor gasto este mes: "${mayor[0]}" con ${fmt(mayor[1])}. Analizá si hay algo que podés recortar ahí.`});
-  }
-  tips.push({cls:'',icon:'★',text:'Vivir con tus papás es una ventaja enorme. Aprovechala para atacar deuda agresivamente estos 12 meses.'});
-  tips.push({cls:'',icon:'↗',text:'Cada noche entre las 19 y las 23, tomá 2 minutos para anotar los gastos del día. El hábito se forma en 21 días.'});
-  tips.push({cls:'',icon:'♦',text:'Mientras tengas deuda en tarjeta, cada peso libre que no va a pagar deuda está perdiendo contra los intereses.'});
-
-  document.getElementById('consejos-dinamicos').innerHTML = tips.map(t=>
-    `<div class="tip ${t.cls}"><span class="tip-icon">${t.icon}</span><span>${t.text}</span></div>`).join('');
-
-  // Historial
-  const histEl = document.getElementById('historial-list');
-  const keys = Object.keys(ST.meses).sort().reverse();
-  if (!keys.length) {
-    histEl.innerHTML = '<p style="font-size:13px;color:var(--text3);">El historial aparece acá cuando completes tu primer mes.</p>';
-  } else {
-    histEl.innerHTML = keys.slice(0,12).map(k => {
-      const [y,m] = k.split('-');
-      const mdata = ST.meses[k];
-      const total = mdata.gastos.reduce((a,g)=>a+g.monto,0);
-      const s = ST.sueldo[k]||0;
-      const label = new Date(parseInt(y),parseInt(m)-1,1).toLocaleDateString('es-AR',{month:'long',year:'numeric'});
-      return `<div class="row">
-        <div><div class="row-label" style="text-transform:capitalize;">${label}</div><div class="row-sub">${mdata.gastos.length} gastos</div></div>
-        <div class="row-right"><div style="font-size:14px;font-weight:600;">${fmt(total)}</div><div style="font-size:11px;color:var(--text3);">${s>0?'sueldo '+fmt(s):''}</div></div>
-      </div>`;
-    }).join('');
-  }
-
-  // Notificaciones
-  const notifEl = document.getElementById('notif-section');
-  if ('Notification' in window && Notification.permission === 'default') {
-    notifEl.innerHTML = `<div class="notif-banner">
-      <span style="font-size:20px;">🔔</span>
-      <div style="flex:1;">
-        <div style="font-weight:600;margin-bottom:2px;">Recordatorio nocturno</div>
-        <div style="font-size:12px;opacity:0.8;">Activá las notificaciones para que te recuerde registrar tus gastos cada noche a las 21hs.</div>
-      </div>
-      <button class="btn-ghost" onclick="requestNotif()">Activar</button>
-    </div>`;
-  } else if (Notification.permission === 'granted') {
-    notifEl.innerHTML = `<div class="notif-banner"><span>🔔</span><span>Recordatorio nocturno activado</span></div>`;
-  } else { notifEl.innerHTML=''; }
-}
-
-// ─── NOTIFICACIONES ──────────────────────────────────────────────────────────
-function requestNotif() {
-  Notification.requestPermission().then(perm => {
-    if (perm==='granted') {
-      scheduleNightReminder();
-      toast('Recordatorio activado para las 21hs');
-      renderConsejos();
-    } else { toast('No se pudo activar el recordatorio'); }
+  const movsMes = ST.movimientos.filter(m => m.mes === key);
+  const total = movsMes.reduce((a, m) => a + m.monto, 0);
+  let txt = `═══ FICO · RESUMEN ═══\n${monthName(viewYear, viewMonth)}\n\n`;
+  txt += `Sueldo: ${ST.sueldo > 0 ? fmt(ST.sueldo) : 'no ingresado'}\n`;
+  txt += `Gasto del mes: ${fmt(total)}\n`;
+  if (ST.sueldo > 0) txt += `Libre: ${fmt(ST.sueldo - total)}\n`;
+  txt += `\nGRUPOS:\n`;
+  ST.grupos.forEach(g => {
+    const movs = movsMes.filter(m => m.grupoId === g.id || m.grupoId2 === g.id);
+    const t = movs.reduce((a, m) => a + m.monto, 0);
+    if (t > 0) txt += `  ${g.nombre}: ${fmt(t)}\n`;
   });
-}
-function scheduleNightReminder() {
-  const now = new Date();
-  const target = new Date(); target.setHours(21,0,0,0);
-  if (now > target) target.setDate(target.getDate()+1);
-  const ms = target - now;
-  setTimeout(() => {
-    if (Notification.permission==='granted') {
-      new Notification('Mis Finanzas 💰', {
-        body: '¿Ya anotaste los gastos del día?',
-        icon: './icon-192.png'
-      });
-      scheduleNightReminder();
-    }
-  }, ms);
-}
-if (Notification.permission==='granted') scheduleNightReminder();
+  txt += `\nMOVIMIENTOS:\n`;
+  movsMes.forEach(m => { txt += `  · ${m.desc}: ${fmt(m.monto)}\n`; });
+  txt += `\nGenerado: ${new Date().toLocaleDateString('es-AR')}`;
 
-// ─── EXPORT ──────────────────────────────────────────────────────────────────
-function showExport() {
-  const key = currentKey();
-  const md = getMonthData(key);
-  const sueldo = ST.sueldo[key]||0;
-  const totalDeuda = ST.deudas.reduce((a,d)=>a+d.saldo,0);
-  const totalG = md.gastos.reduce((a,g)=>a+g.monto,0);
-  const porCat = {};
-  md.gastos.forEach(g=>{porCat[g.cat]=(porCat[g.cat]||0)+g.monto;});
-
-  let txt = `═══ RESUMEN FINANCIERO ═══\n`;
-  txt += `Mes: ${monthName(viewYear,viewMonth)}\n\n`;
-  txt += `SUELDO: ${sueldo>0?fmt(sueldo):'no ingresado'}\n`;
-  txt += `TOTAL DEUDA: ${fmt(totalDeuda)}\n`;
-  txt += `GASTADO EL MES: ${fmt(totalG)}\n\n`;
-  txt += `DEUDAS:\n`;
-  ST.deudas.forEach(d=>{ txt+=`  • ${d.nombre}: ${fmt(d.saldo)} (mín. ${fmt(d.minimo)}/mes)\n`; });
-  txt += `\nGASTOS POR CATEGORÍA:\n`;
-  Object.entries(porCat).sort((a,b)=>b[1]-a[1]).forEach(([c,v])=>{ txt+=`  • ${c}: ${fmt(v)}\n`; });
-  txt += `\nGENERADO: ${new Date().toLocaleDateString('es-AR')}`;
-
-  if (navigator.share) {
-    navigator.share({ title:'Mis Finanzas', text:txt }).catch(()=>{});
-  } else {
-    navigator.clipboard.writeText(txt).then(()=>toast('Resumen copiado al portapapeles')).catch(()=>toast('No se pudo copiar'));
-  }
+  if (navigator.share) navigator.share({ title:'FICO', text:txt }).catch(() => {});
+  else navigator.clipboard.writeText(txt).then(() => toast('Copiado al portapapeles')).catch(() => toast('No se pudo copiar'));
 }
 
+// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 
-// ─── PLANES ──────────────────────────────────────────────────────────────────
-const PLANES_DEFAULT = [
-  {
-    id: 'deuda',
-    nombre: 'Salir de la deuda',
-    icono: '⚡',
-    desc: 'Liquidar todas las tarjetas y quedar en cero',
-    color: '#1D9E75',
-    meta: null,
-    fecha: null,
-    pasos: [
-      { id: 1, texto: 'Mapear toda la deuda: banco, saldo, tasa y mínimo', done: false },
-      { id: 2, texto: 'Registrar gastos todos los días por 30 días seguidos', done: false },
-      { id: 3, texto: 'Dejar de usar las tarjetas para gastos del mes', done: false },
-      { id: 4, texto: 'Atacar la deuda más chica con todo (bola de nieve)', done: false },
-      { id: 5, texto: 'Repetir hasta liquidar cada tarjeta una por una', done: false },
-      { id: 6, texto: 'Armar fondo de emergencia: 3 meses de gastos fijos', done: false },
-      { id: 7, texto: 'Deuda = $0 · Festejar y pasar al siguiente plan', done: false }
-    ],
-    consejos: [
-      'Vivís con tus papás: eso te da una ventaja enorme. Usala para atacar deuda agresivamente estos 12 meses.',
-      'El objetivo no es pagar el mínimo. Es pagar TODO lo que podés por encima del mínimo en la deuda más chica.',
-      'Cada vez que cobrás, lo primero que hacés es transferir a deuda. Antes de gastar un peso.',
-      'No abras nuevas tarjetas ni cuotas mientras no estés en cero. Aunque "sea una promo".',
-      'Calculá cuánto pagás de intereses por mes. Ese número es tu motivación.'
-    ]
-  },
-  {
-    id: 'viaje',
-    nombre: 'Primer viaje solo',
-    icono: '✈',
-    desc: 'Viajar por primera vez solo, manteniéndome yo mismo',
-    color: '#7F77DD',
-    meta: null,
-    fecha: null,
-    pasos: [
-      { id: 1, texto: 'Elegir el destino y estimar el presupuesto total', done: false },
-      { id: 2, texto: 'Abrir una cuenta o caja de ahorro solo para el viaje', done: false },
-      { id: 3, texto: 'Definir cuánto ahorrar por mes para llegar a la meta', done: false },
-      { id: 4, texto: 'Buscar las mejores fechas y precios de pasajes', done: false },
-      { id: 5, texto: 'Comprar los pasajes cuando tengas el 50% ahorrado', done: false },
-      { id: 6, texto: 'Completar el ahorro para alojamiento y gastos', done: false },
-      { id: 7, texto: 'Viajar', done: false }
-    ],
-    consejos: [
-      'Este plan se activa recién cuando el plan de deuda esté terminado. No hay atajos.',
-      'Destinos más baratos para un primer viaje solo: Colombia, Brasil (nordeste), Perú, México.',
-      'El truco del viajero inteligente: vuelos baratos primero, alojamiento después.',
-      'Con $500-800 USD se puede hacer un viaje de 10 días en Latinoamérica viajando bien.'
-    ]
-  },
-  {
-    id: 'mudanza',
-    nombre: 'Mudarme solo',
-    icono: '🏠',
-    desc: 'Tener mi propio lugar y mantenerme a mí mismo',
-    color: '#BA7517',
-    meta: null,
-    fecha: null,
-    pasos: [
-      { id: 1, texto: 'Calcular el costo real de vivir solo (alquiler + expensas + servicios + comida)', done: false },
-      { id: 2, texto: 'Verificar que el sueldo cubra al menos el 60% sin ajuste', done: false },
-      { id: 3, texto: 'Juntar: 2 meses de depósito + 1 mes de adelanto + mudanza', done: false },
-      { id: 4, texto: 'Armar fondo de emergencia de 3 meses de alquiler', done: false },
-      { id: 5, texto: 'Buscar el departamento dentro del rango del presupuesto', done: false },
-      { id: 6, texto: 'Firmar contrato y mudarse', done: false }
-    ],
-    consejos: [
-      'Regla del 30%: el alquiler no debería superar el 30% de tu sueldo neto.',
-      'Antes de mudarte, viví un mes "simulando" los gastos de vivir solo. Lo que te sobre es lo que realmente tenés.',
-      'Los gastos ocultos de vivir solo: internet, luz, gas, limpieza, arreglos. Sumá un 20% al alquiler para estimarlos.',
-      'Convivir con alguien el primer año puede reducir los costos a la mitad y hacerlo mucho más manejable.'
-    ]
-  }
-];
-
-if (!ST.planes) {
-  ST.planes = JSON.parse(JSON.stringify(PLANES_DEFAULT));
-  save();
-}
-
-let planDetalleId = null;
-let nuevoPasos = [];
-
-function renderPlanes() {
-  document.getElementById('planes-list-view').style.display = 'block';
-  document.getElementById('planes-detalle-view').style.display = 'none';
-  document.getElementById('planes-nuevo-view').style.display = 'none';
-
-  const el = document.getElementById('planes-cards');
-  el.innerHTML = ST.planes.map(p => {
-    const total = p.pasos.length;
-    const hechos = p.pasos.filter(s => s.done).length;
-    const pct = total > 0 ? Math.round((hechos / total) * 100) : 0;
-    const isActive = pct > 0 && pct < 100;
-    const isDone = pct === 100;
-    return `<div onclick="openPlanDetalle('${p.id}')" style="background:var(--bg2);border:0.5px solid ${isDone ? 'rgba(29,158,117,0.4)' : isActive ? 'rgba('+hexToRgb(p.color)+',0.3)' : 'rgba(255,255,255,0.08)'};border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:${total?'10px':'0'};">
-        <div style="width:40px;height:40px;border-radius:12px;background:rgba(${hexToRgb(p.color)},0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${p.icono}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px;">
-            ${p.nombre}
-            ${isDone ? '<span style="font-size:9px;background:rgba(29,158,117,0.2);color:#1d9e75;padding:2px 7px;border-radius:20px;font-weight:700;">Completado</span>' : isActive ? '<span style="font-size:9px;background:rgba('+hexToRgb(p.color)+',0.18);color:'+p.color+';padding:2px 7px;border-radius:20px;font-weight:700;">Activo</span>' : ''}
-          </div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px;">${p.desc}</div>
-        </div>
-        <span style="color:var(--text3);font-size:18px;flex-shrink:0;">›</span>
-      </div>
-      ${total ? `<div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px;"><span>${hechos} de ${total} pasos</span><span style="color:${p.color};">${pct}%</span></div>
-        <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${p.color};border-radius:2px;transition:width 0.3s;"></div></div>
-      </div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-function hexToRgb(hex) {
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  return `${r},${g},${b}`;
-}
-
-function openPlanDetalle(id) {
-  planDetalleId = id;
-  const p = ST.planes.find(x => x.id === id);
-  if (!p) return;
-  document.getElementById('planes-list-view').style.display = 'none';
-  document.getElementById('planes-detalle-view').style.display = 'block';
-  document.getElementById('topbar-title').textContent = p.nombre;
-
-  const total = p.pasos.length;
-  const hechos = p.pasos.filter(s => s.done).length;
-  const pct = total > 0 ? Math.round((hechos / total) * 100) : 0;
-
-  const metaHtml = p.meta ? `<div style="font-size:13px;color:var(--text2);margin-top:4px;">Meta: ${fmt(p.meta)}</div>` : '';
-  const fechaHtml = p.fecha ? `<div style="font-size:13px;color:var(--text2);margin-top:2px;">Objetivo: ${new Date(p.fecha+'-01').toLocaleDateString('es-AR',{month:'long',year:'numeric'})}</div>` : '';
-
-  const pasosHtml = p.pasos.map((paso, i) => `
-    <div onclick="togglePaso('${p.id}',${paso.id})" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--border);cursor:pointer;">
-      <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid ${paso.done ? p.color : 'var(--text3)'};background:${paso.done ? p.color : 'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
-        ${paso.done ? '<span style="color:#fff;font-size:12px;font-weight:700;">✓</span>' : `<span style="font-size:10px;color:var(--text3);font-weight:600;">${i+1}</span>`}
-      </div>
-      <div style="flex:1;">
-        <div style="font-size:13px;color:${paso.done ? 'var(--text3)' : 'var(--text)'};${paso.done ? 'text-decoration:line-through;' : ''};line-height:1.4;">${paso.texto}</div>
-      </div>
-    </div>`).join('');
-
-  const consejosHtml = p.consejos && p.consejos.length ? `
-    <div class="card" style="margin-top:12px;">
-      <div class="card-title">Consejos para este plan</div>
-      ${p.consejos.map(c => `<div class="tip" style="margin-bottom:8px;"><span style="font-size:14px;flex-shrink:0;">💡</span><span>${c}</span></div>`).join('')}
-    </div>` : '';
-
-  const deleteHtml = !['deuda','viaje','mudanza'].includes(p.id) ? `
-    <button onclick="eliminarPlan('${p.id}')" style="width:100%;margin-top:12px;padding:12px;background:rgba(226,75,74,0.1);border:0.5px solid rgba(226,75,74,0.3);border-radius:var(--radius-sm);color:var(--danger);font-size:14px;cursor:pointer;">Eliminar este plan</button>` : '';
-
-  document.getElementById('plan-detalle-content').innerHTML = `
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-      <div style="width:52px;height:52px;border-radius:14px;background:rgba(${hexToRgb(p.color)},0.15);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">${p.icono}</div>
-      <div>
-        <div style="font-size:18px;font-weight:700;color:var(--text);">${p.nombre}</div>
-        <div style="font-size:12px;color:var(--text3);">${p.desc}</div>
-        ${metaHtml}${fechaHtml}
-      </div>
-    </div>
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <div class="card-title" style="margin-bottom:0;">Progreso</div>
-        <span style="font-size:13px;font-weight:600;color:${p.color};">${hechos} / ${total} pasos</span>
-      </div>
-      <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;">
-        <div style="height:100%;width:${pct}%;background:${p.color};border-radius:3px;transition:width 0.4s;"></div>
-      </div>
-      <div style="margin-top:12px;">${pasosHtml}</div>
-    </div>
-    ${consejosHtml}
-    ${deleteHtml}
-  `;
-}
-
-function togglePaso(planId, pasoId) {
-  const p = ST.planes.find(x => x.id === planId);
-  if (!p) return;
-  const paso = p.pasos.find(s => s.id === pasoId);
-  if (!paso) return;
-  paso.done = !paso.done;
-  save();
-  toast(paso.done ? '¡Paso completado!' : 'Paso desmarcado');
-  openPlanDetalle(planId);
-}
-
-function closePlanDetalle() {
-  planDetalleId = null;
-  document.getElementById('topbar-title').textContent = 'Mis Planes';
-  renderPlanes();
-}
-
-function eliminarPlan(id) {
-  ST.planes = ST.planes.filter(p => p.id !== id);
-  save();
-  closePlanDetalle();
-  toast('Plan eliminado');
-}
-
-function showNuevoPlan() {
-  nuevoPasos = [];
-  document.getElementById('np-nombre').value = '';
-  document.getElementById('np-desc').value = '';
-  document.getElementById('np-icono').value = '';
-  document.getElementById('np-meta').value = '';
-  document.getElementById('np-fecha').value = '';
-  renderNuevoPasos();
-  document.getElementById('planes-list-view').style.display = 'none';
-  document.getElementById('planes-nuevo-view').style.display = 'block';
-  document.getElementById('topbar-title').textContent = 'Nuevo plan';
-}
-
-function closeNuevoPlan() {
-  document.getElementById('planes-nuevo-view').style.display = 'none';
-  document.getElementById('topbar-title').textContent = 'Mis Planes';
-  renderPlanes();
-}
-
-function addNuevoPaso() {
-  const inp = document.getElementById('np-paso-input');
-  const txt = inp.value.trim();
-  if (!txt) return;
-  nuevoPasos.push({ id: Date.now(), texto: txt, done: false });
-  inp.value = '';
-  renderNuevoPasos();
-}
-
-function removeNuevoPaso(id) {
-  nuevoPasos = nuevoPasos.filter(p => p.id !== id);
-  renderNuevoPasos();
-}
-
-function renderNuevoPasos() {
-  document.getElementById('np-pasos-list').innerHTML = nuevoPasos.map(p =>
-    `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--border);">
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;"></div>
-      <span style="flex:1;font-size:13px;color:var(--text);">${p.texto}</span>
-      <button onclick="removeNuevoPaso(${p.id})" style="background:transparent;border:none;color:var(--danger);font-size:16px;cursor:pointer;">×</button>
-    </div>`).join('') || '<p style="font-size:12px;color:var(--text3);padding:6px 0;">Agregá al menos un paso.</p>';
-}
-
-function guardarNuevoPlan() {
-  const nombre = document.getElementById('np-nombre').value.trim();
-  if (!nombre) { toast('Poné un nombre al plan'); return; }
-  if (!nuevoPasos.length) { toast('Agregá al menos un paso'); return; }
-  const icono = document.getElementById('np-icono').value.trim() || '🎯';
-  const desc = document.getElementById('np-desc').value.trim() || '';
-  const meta = parseFloat(document.getElementById('np-meta').value) || null;
-  const fecha = document.getElementById('np-fecha').value || null;
-  const colors = ['#378ADD','#D4537E','#BA7517','#5DCAA5','#E24B4A','#7F77DD'];
-  const color = colors[ST.planes.length % colors.length];
-  ST.planes.push({ id: 'plan_'+Date.now(), nombre, icono, desc, color, meta, fecha, pasos: nuevoPasos, consejos: [] });
-  save();
-  toast('¡Plan creado!');
-  closeNuevoPlan();
-}
-
-// ─── SERVICE WORKER ──────────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
-}
-
-// ─── INIT ────────────────────────────────────────────────────────────────────
-if (ST.proyeccion?.sueldo) document.getElementById('p-sueldo').value = ST.proyeccion.sueldo;
-if (ST.proyeccion?.ahorro) document.getElementById('p-ahorro').value = ST.proyeccion.ahorro;
-if (ST.proyeccion?.meta) document.getElementById('p-meta').value = ST.proyeccion.meta;
-if (ST.proyeccion?.metaNombre) document.getElementById('p-meta-nombre').value = ST.proyeccion.metaNombre;
-
+// ─── INIT ─────────────────────────────────────────────────────────────────────
 renderResumen();
-renderDeudas();
 </script>
 </body>
 </html>
