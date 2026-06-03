@@ -195,6 +195,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           <div class="card-title">Últimos movimientos</div>
           <div id="ultimos-movs"></div>
         </div>
+        <div class="card" style="margin-top:0;cursor:pointer;" onclick="showSection('compromisos')">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div class="card-title" style="margin-bottom:0;">Compromisos del mes</div>
+            <span style="font-size:12px;color:var(--text3);">Ver todos ›</span>
+          </div>
+          <div id="comp-resumen-widget"></div>
+        </div>
         <div class="card" style="margin-top:0;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <div class="card-title" style="margin-bottom:0;">Cotizaciones</div>
@@ -202,6 +209,44 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           </div>
           <div id="cotiz-widget"><div style="font-size:12px;color:var(--text3);text-align:center;padding:10px;">Cargando...</div></div>
           <div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:right;" id="cotiz-hora"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPROMISOS -->
+    <div class="section" id="sec-compromisos">
+      <div id="comp-list-view">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px;">
+          <div style="font-size:22px;font-weight:700;">Compromisos</div>
+          <button class="btn-ghost" onclick="openNuevoCompromiso()">+ Nuevo</button>
+        </div>
+        <div style="padding:0 16px;" id="comp-mes-header"></div>
+        <div style="padding:0 16px;" id="comp-cards"></div>
+      </div>
+      <div id="comp-form-view" style="display:none;">
+        <button class="back-btn" onclick="closeCompForm()">‹ Volver</button>
+        <div style="padding:0 16px;">
+          <div style="font-size:20px;font-weight:700;margin-bottom:14px;" id="comp-form-title">Nuevo compromiso</div>
+          <div class="card">
+            <div class="input-group"><label>Nombre</label><input type="text" id="cf-nombre" placeholder="Starlink, Movistar, cuota auto..."></div>
+            <div class="input-grid">
+              <div class="input-group"><label>Monto ($)</label><input type="text" id="cf-monto" placeholder="15000" inputmode="decimal"></div>
+              <div class="input-group"><label>Vence el día</label><input type="number" id="cf-vence" placeholder="10" inputmode="numeric" min="1" max="31"></div>
+            </div>
+            <div class="input-group"><label>Medio de pago</label>
+              <input type="text" id="cf-medio" placeholder="Visa, débito, transferencia...">
+            </div>
+            <div class="input-group"><label>Notas (opcional)</label>
+              <input type="text" id="cf-notas" placeholder="Ej: se debita automático">
+            </div>
+            <div class="input-group"><label>¿Se repite cada mes?</label>
+              <select id="cf-repite">
+                <option value="si">Sí, todos los meses</option>
+                <option value="no">No, solo este mes</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-primary" id="cf-btn" onclick="guardarCompromiso()">Guardar compromiso</button>
         </div>
       </div>
     </div>
@@ -291,9 +336,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
       <span>Grupos</span>
     </button>
+    <button class="nav-item" onclick="showSection('compromisos')" id="btn-compromisos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <span>Pagos</span>
+    </button>
     <button class="nav-item" onclick="showSection('movimientos')" id="btn-movimientos">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-      <span>Movimientos</span>
+      <span>Detalle</span>
     </button>
     <button class="nav-item" onclick="showSection('listas')" id="btn-listas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
@@ -468,6 +517,8 @@ function saveST() { try { localStorage.setItem(STORE, JSON.stringify(ST)); } cat
 let ST = loadST();
 if (!ST.grupos) ST.grupos = [];
 if (!ST.listas) ST.listas = [];
+if (!ST.compromisos) ST.compromisos = [];
+if (!ST.compEstados) ST.compEstados = {};
 if (!ST.cotizaciones) ST.cotizaciones = {};
 if (!ST.movimientos) ST.movimientos = [];
 if (!ST.nombre) ST.nombre = 'Fran';
@@ -509,7 +560,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 function closeModalOnBg(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
-const SEC_TITLES = { resumen:'FICO', grupos:'Mis grupos', movimientos:'Movimientos', listas:'Listas de compras', ajustes:'Ajustes' };
+const SEC_TITLES = { resumen:'FICO', grupos:'Mis grupos', compromisos:'Compromisos del mes', movimientos:'Movimientos', listas:'Listas de compras', ajustes:'Ajustes' };
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -522,6 +573,7 @@ function showSection(id) {
   if (id === 'resumen') renderResumen();
   if (id === 'grupos') renderGrupos();
   if (id === 'movimientos') renderMovimientos();
+  if (id === 'compromisos') renderCompromisos();
   if (id === 'listas') renderListas();
   if (id === 'ajustes') renderAjustes();
 }
@@ -619,6 +671,7 @@ document.getElementById('charts-container').addEventListener('scroll', function(
 // ─── RESUMEN ─────────────────────────────────────────────────────────────────
 function renderResumen() {
   fetchCotizaciones();
+  renderCompResumen();
   const now = new Date();
   viewYear = now.getFullYear(); viewMonth = now.getMonth();
   const key = currentKey();
@@ -1356,6 +1409,212 @@ function renderCotizWidget() {
     const d = new Date(c.lastFetch);
     horaEl.textContent = `Actualizado: ${d.toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'})}`;
   }
+}
+
+// ─── COMPROMISOS ─────────────────────────────────────────────────────────────
+let editingCompId = null;
+
+function compKey(y, m) { return `${y}-${String(m+1).padStart(2,'0')}`; }
+
+function renderCompromisos() {
+  document.getElementById('comp-list-view').style.display = 'block';
+  document.getElementById('comp-form-view').style.display = 'none';
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const key = compKey(y, m);
+  const mesLabel = now.toLocaleDateString('es-AR', {month:'long', year:'numeric'});
+
+  // Get estados for this month
+  if (!ST.compEstados[key]) ST.compEstados[key] = {};
+  const estados = ST.compEstados[key];
+
+  // Get compromisos for this month (fixed + one-time this month)
+  const comps = ST.compromisos.filter(c => c.repite === 'si' || c.mes === key);
+  const pagados = comps.filter(c => estados[c.id] === 'pagado').length;
+  const totalMes = comps.reduce((a, c) => a + (parseFloat(c.monto) || 0), 0);
+  const pendTotal = comps.filter(c => estados[c.id] !== 'pagado').reduce((a, c) => a + (parseFloat(c.monto) || 0), 0);
+
+  // Header
+  document.getElementById('comp-mes-header').innerHTML = `
+    <div style="background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);padding:14px 16px;margin-bottom:12px;">
+      <div style="font-size:12px;color:var(--text2);text-transform:capitalize;margin-bottom:8px;">${mesLabel}</div>
+      <div style="display:flex;gap:0;margin-bottom:10px;">
+        <div style="flex:1;text-align:center;border-right:0.5px solid var(--border);">
+          <div style="font-size:18px;font-weight:700;color:var(--text);">${pagados}/${comps.length}</div>
+          <div style="font-size:10px;color:var(--text2);">pagados</div>
+        </div>
+        <div style="flex:1;text-align:center;border-right:0.5px solid var(--border);">
+          <div style="font-size:18px;font-weight:700;color:var(--danger);">${fmt(pendTotal)}</div>
+          <div style="font-size:10px;color:var(--text2);">pendiente</div>
+        </div>
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:18px;font-weight:700;color:var(--text2);">${fmt(totalMes)}</div>
+          <div style="font-size:10px;color:var(--text2);">total mes</div>
+        </div>
+      </div>
+      <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${comps.length ? Math.round(pagados/comps.length*100) : 0}%;background:var(--accent);border-radius:3px;transition:width 0.3s;"></div>
+      </div>
+    </div>`;
+
+  const el = document.getElementById('comp-cards');
+  if (!comps.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div>No hay compromisos este mes.<br>Tocá "+ Nuevo" para agregar.</div>';
+    return;
+  }
+
+  // Sort: pendientes primero, luego por día de vencimiento
+  const sorted = [...comps].sort((a, b) => {
+    const aPag = estados[a.id] === 'pagado';
+    const bPag = estados[b.id] === 'pagado';
+    if (aPag !== bPag) return aPag ? 1 : -1;
+    return (parseInt(a.vence)||31) - (parseInt(b.vence)||31);
+  });
+
+  el.innerHTML = sorted.map(comp => {
+    const pagado = estados[comp.id] === 'pagado';
+    const venceLabel = comp.vence ? `Vence día ${comp.vence}` : '';
+    const hoy = now.getDate();
+    const urgente = !pagado && comp.vence && parseInt(comp.vence) <= hoy + 3 && parseInt(comp.vence) >= hoy;
+    const vencido = !pagado && comp.vence && parseInt(comp.vence) < hoy;
+    const borderColor = pagado ? 'var(--accent)' : vencido ? 'var(--danger)' : urgente ? 'var(--warn)' : 'var(--border)';
+    const alertLabel = vencido ? ' · ⚠ Vencido' : urgente ? ' · ⚡ Vence pronto' : '';
+
+    return `<div style="background:var(--bg2);border:0.5px solid ${borderColor};border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
+      <div onclick="toggleCompromiso('${comp.id}')" style="width:28px;height:28px;border-radius:50%;border:2px solid ${pagado ? 'var(--accent)' : 'var(--text3)'};background:${pagado ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+        ${pagado ? '<span style="color:#fff;font-size:14px;font-weight:700;">✓</span>' : ''}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:600;color:${pagado ? 'var(--text3)' : 'var(--text)'};${pagado ? 'text-decoration:line-through;' : ''}">${comp.nombre}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px;display:flex;flex-wrap:wrap;gap:6px;">
+          ${comp.monto ? `<span style="color:${pagado?'var(--text3)':'var(--text)'};font-weight:600;">${fmt(parseFloat(comp.monto))}</span>` : ''}
+          ${comp.medio ? `<span>· ${comp.medio}</span>` : ''}
+          ${venceLabel ? `<span style="color:${vencido?'var(--danger)':urgente?'var(--warn)':'var(--text3)'};">${venceLabel}${alertLabel}</span>` : ''}
+        </div>
+        ${comp.notas ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">${comp.notas}</div>` : ''}
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button onclick="editCompromiso('${comp.id}')" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px;">✎</button>
+        <button onclick="deleteCompromiso('${comp.id}')" style="background:transparent;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:4px;">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCompromiso(id) {
+  const now = new Date();
+  const key = compKey(now.getFullYear(), now.getMonth());
+  if (!ST.compEstados[key]) ST.compEstados[key] = {};
+  const actual = ST.compEstados[key][id];
+  ST.compEstados[key][id] = actual === 'pagado' ? 'pendiente' : 'pagado';
+  saveST();
+  const comp = ST.compromisos.find(c => c.id === id);
+  toast(ST.compEstados[key][id] === 'pagado' ? `✓ ${comp?.nombre || ''} pagado` : 'Marcado como pendiente');
+  renderCompromisos();
+}
+
+function openNuevoCompromiso() {
+  editingCompId = null;
+  document.getElementById('cf-nombre').value = '';
+  document.getElementById('cf-monto').value = '';
+  document.getElementById('cf-vence').value = '';
+  document.getElementById('cf-medio').value = '';
+  document.getElementById('cf-notas').value = '';
+  document.getElementById('cf-repite').value = 'si';
+  document.getElementById('comp-form-title').textContent = 'Nuevo compromiso';
+  document.getElementById('cf-btn').textContent = 'Guardar compromiso';
+  document.getElementById('comp-list-view').style.display = 'none';
+  document.getElementById('comp-form-view').style.display = 'block';
+}
+
+function editCompromiso(id) {
+  const comp = ST.compromisos.find(c => c.id === id);
+  if (!comp) return;
+  editingCompId = id;
+  document.getElementById('cf-nombre').value = comp.nombre || '';
+  document.getElementById('cf-monto').value = comp.monto || '';
+  document.getElementById('cf-vence').value = comp.vence || '';
+  document.getElementById('cf-medio').value = comp.medio || '';
+  document.getElementById('cf-notas').value = comp.notas || '';
+  document.getElementById('cf-repite').value = comp.repite || 'si';
+  document.getElementById('comp-form-title').textContent = 'Editar compromiso';
+  document.getElementById('cf-btn').textContent = 'Actualizar';
+  document.getElementById('comp-list-view').style.display = 'none';
+  document.getElementById('comp-form-view').style.display = 'block';
+}
+
+function guardarCompromiso() {
+  const nombre = document.getElementById('cf-nombre').value.trim();
+  if (!nombre) { toast('Poné un nombre'); return; }
+  const now = new Date();
+  const mes = compKey(now.getFullYear(), now.getMonth());
+  const data = {
+    nombre,
+    monto: document.getElementById('cf-monto').value.replace(',','.'),
+    vence: document.getElementById('cf-vence').value,
+    medio: document.getElementById('cf-medio').value.trim(),
+    notas: document.getElementById('cf-notas').value.trim(),
+    repite: document.getElementById('cf-repite').value,
+    mes
+  };
+  if (editingCompId) {
+    const idx = ST.compromisos.findIndex(c => c.id === editingCompId);
+    if (idx >= 0) ST.compromisos[idx] = { ...ST.compromisos[idx], ...data };
+    toast('Compromiso actualizado ✓');
+  } else {
+    ST.compromisos.push({ id: 'comp_' + Date.now(), ...data });
+    toast('Compromiso agregado ✓');
+  }
+  saveST(); closeCompForm();
+}
+
+function deleteCompromiso(id) {
+  ST.compromisos = ST.compromisos.filter(c => c.id !== id);
+  saveST(); renderCompromisos(); toast('Eliminado');
+}
+
+function closeCompForm() {
+  document.getElementById('comp-form-view').style.display = 'none';
+  document.getElementById('comp-list-view').style.display = 'block';
+  renderCompromisos();
+}
+
+function renderCompResumen() {
+  const el = document.getElementById('comp-resumen-widget');
+  if (!el) return;
+  const now = new Date();
+  const key = compKey(now.getFullYear(), now.getMonth());
+  if (!ST.compEstados[key]) ST.compEstados[key] = {};
+  const estados = ST.compEstados[key];
+  const comps = ST.compromisos.filter(c => c.repite === 'si' || c.mes === key);
+  if (!comps.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3);text-align:center;padding:6px 0;">Sin compromisos este mes</div>';
+    return;
+  }
+  const pagados = comps.filter(c => estados[c.id] === 'pagado').length;
+  const pendientes = comps.filter(c => estados[c.id] !== 'pagado');
+  const pendTotal = pendientes.reduce((a, c) => a + (parseFloat(c.monto) || 0), 0);
+  const pct = Math.round(pagados / comps.length * 100);
+
+  let html = `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
+    <span style="color:var(--text2);">${pagados} de ${comps.length} pagados</span>
+    <span style="color:${pendTotal>0?'var(--danger)':'var(--accent)'};font-weight:600;">${pendTotal>0?fmt(pendTotal)+' pendiente':'Todo pagado ✓'}</span>
+  </div>
+  <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:${pendientes.length?'10px':'0'};">
+    <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:3px;"></div>
+  </div>`;
+
+  if (pendientes.length) {
+    html += pendientes.slice(0,3).map(c => {
+      const urgente = c.vence && parseInt(c.vence) <= now.getDate() + 3;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:0.5px solid var(--border);">
+        <span style="font-size:13px;color:var(--text);">${c.nombre}</span>
+        <span style="font-size:12px;color:${urgente?'var(--warn)':'var(--text3)'};">${c.vence?'día '+c.vence:''}</span>
+      </div>`;
+    }).join('');
+    if (pendientes.length > 3) html += `<div style="font-size:11px;color:var(--text3);text-align:center;padding-top:4px;">+${pendientes.length-3} más</div>`;
+  }
+  el.innerHTML = html;
 }
 
 // ─── LIMPIAR SERVICE WORKER (nunca más cache) ────────────────────────────────
